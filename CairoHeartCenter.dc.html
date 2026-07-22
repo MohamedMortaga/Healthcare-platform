@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  @keyframes chc-fadein { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes chc-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+  body { margin:0; background:#f7f5ef; color:#101a26; font-family:'Inter',ui-sans-serif,system-ui,sans-serif; }
+  a { color:#1d4ed8; }
+  a:hover { color:#16324f; }
+  input::placeholder, textarea::placeholder { color:#a3adba; }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-thumb { background:rgba(22,50,79,.25); border-radius:9999px; }
+</style>
+</helmet>
+
+<div dir="{{ dir }}" style="display:flex;flex-direction:column;min-height:100vh;width:100%;position:relative;background:var(--chc-bg);color:var(--chc-ink);font-family:var(--chc-sans);transition:background .2s,color .2s;{{ themeVars }}">
+
+  <!-- ============= ORGANISM: Navbar ============= -->
+  <header style="width:100%;background:var(--chc-surface);border-bottom:1px solid var(--chc-border);position:sticky;top:0;z-index:40">
+    <div style="max-width:1280px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer;text-align:start;padding:0">
+        <div style="width:38px;height:38px;border-radius:10px;background:var(--chc-navy);display:flex;align-items:center;justify-content:center;color:white;font-family:var(--chc-serif);font-weight:600;font-size:18px;flex-shrink:0;font-style:italic">C</div>
+        <div>
+          <h1 style="font-size:17px;font-weight:600;color:var(--chc-ink);margin:0;line-height:1.1;font-family:var(--chc-serif)">{{ clinicName }}</h1>
+          <p style="font-size:10px;font-weight:600;color:var(--chc-muted);margin:3px 0 0;text-transform:uppercase;letter-spacing:0.08em">{{ clinicTagline }}</p>
+        </div>
+      </button>
+
+      <nav style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <button onClick="{{ goHome }}" style="{{ navHomeStyle }}">{{ t.nav.home }}</button>
+        <button onClick="{{ goDoctors }}" style="{{ navDoctorsStyle }}">{{ t.nav.doctors }}</button>
+        <button onClick="{{ scrollServices }}" style="padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;background:none;border:none;cursor:pointer;color:var(--chc-body)">{{ t.nav.services }}</button>
+        <button onClick="{{ scrollAbout }}" style="padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;background:none;border:none;cursor:pointer;color:var(--chc-body)">{{ t.nav.about }}</button>
+      </nav>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button onClick="{{ toggleLocale }}" title="Language" style="padding:8px 12px;font-size:12px;font-weight:700;color:var(--chc-navy);background:var(--chc-accentBg);border:none;border-radius:9999px;cursor:pointer;white-space:nowrap">{{ localeToggleLabel }}</button>
+        <button onClick="{{ toggleTheme }}" title="Theme" style="width:34px;height:34px;font-size:15px;color:var(--chc-navy);background:var(--chc-accentBg);border:none;border-radius:9999px;cursor:pointer;display:flex;align-items:center;justify-content:center">{{ themeIcon }}</button>
+        <sc-if value="{{ auth.isLoggedIn }}">
+          <div style="display:flex;align-items:center;gap:10px;background:var(--chc-bg);padding:5px 6px 5px 12px;border-radius:10px;border:1px solid var(--chc-border)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:26px;height:26px;border-radius:9999px;background:var(--chc-navy);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{ auth.initial }}</div>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:var(--chc-ink);line-height:1">{{ auth.name }}</div>
+                <span style="font-size:9px;color:#059669;font-weight:700">{{ t.nav.book }}</span>
+              </div>
+            </div>
+            <button onClick="{{ logout }}" title="Logout" style="padding:5px 8px;color:var(--chc-muted);background:none;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap">{{ t.nav.logout }}</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ auth.isLoggedOut }}">
+          <button onClick="{{ goLogin }}" style="padding:8px 14px;font-size:13px;font-weight:600;color:var(--chc-navy);background:none;border:none;cursor:pointer;white-space:nowrap">{{ t.nav.signin }}</button>
+        </sc-if>
+        <button onClick="{{ goDoctors }}" style="padding:10px 20px;background:var(--chc-navy);color:white;font-size:13px;font-weight:600;border-radius:9999px;border:none;cursor:pointer;white-space:nowrap">{{ t.nav.book }}</button>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex:1;width:100%">
+
+    <!-- ===================== VIEW: HOME ===================== -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="width:100%;animation:chc-fadein .35s ease">
+
+      <section style="max-width:1280px;margin:0 auto;padding:72px 32px 96px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center">
+        <div>
+          <span style="display:inline-block;background:var(--chc-accentBg);color:var(--chc-accentText);font-size:11px;font-weight:700;padding:6px 14px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:24px">{{ t.hero.badge }}</span>
+          <h2 style="font-size:46px;line-height:1.12;font-weight:600;color:var(--chc-ink);margin:0;font-family:var(--chc-serif);text-wrap:pretty">{{ t.hero.title }}</h2>
+          <p style="font-size:15px;color:var(--chc-body);margin:22px 0 0;max-width:480px;line-height:1.7">{{ heroSubtitle }}</p>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:32px;flex-wrap:wrap">
+            <button onClick="{{ goDoctors }}" style="padding:14px 26px;background:var(--chc-navy);color:white;font-size:14px;font-weight:600;border-radius:9999px;border:none;cursor:pointer">{{ t.hero.cta1 }}</button>
+            <button onClick="{{ scrollServices }}" style="padding:14px 26px;background:var(--chc-surface);color:var(--chc-navy);font-size:14px;font-weight:600;border-radius:9999px;border:1px solid var(--chc-border2);cursor:pointer">{{ t.hero.cta2 }}</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:24px;margin-top:44px">
+            <div><div style="font-size:24px;font-weight:700;color:var(--chc-navy);font-family:var(--chc-serif)">{{ clinicPatientsCount }}</div><div style="font-size:11px;color:var(--chc-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.04em">{{ t.hero.statPatients }}</div></div>
+            <div style="width:1px;height:34px;background:var(--chc-border2)"></div>
+            <div><div style="font-size:24px;font-weight:700;color:var(--chc-navy);font-family:var(--chc-serif)">{{ clinicDoctorsCount }}</div><div style="font-size:11px;color:var(--chc-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.04em">{{ t.hero.statSpecialists }}</div></div>
+            <div style="width:1px;height:34px;background:var(--chc-border2)"></div>
+            <div><div style="font-size:24px;font-weight:700;color:var(--chc-navy);font-family:var(--chc-serif)">{{ clinicRating }}</div><div style="font-size:11px;color:var(--chc-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.04em">{{ t.hero.statRating }}</div></div>
+          </div>
+        </div>
+
+        <div style="position:relative">
+          <image-slot id="hero-lobby" shape="rounded" radius="20" style="width:100%;height:480px" placeholder="Drop a clinic interior photo"></image-slot>
+          <div style="position:absolute;left:24px;bottom:-28px;max-width:280px;background:var(--chc-surface);border-radius:14px;border:1px solid var(--chc-border);box-shadow:0 12px 30px rgba(16,26,38,0.08);padding:18px 20px">
+            <p style="font-size:12.5px;font-style:italic;color:var(--chc-body);margin:0;line-height:1.6">"The most professional cardiac care I've received in Egypt. Thorough, calm, unhurried."</p>
+            <p style="font-size:11px;font-weight:700;color:var(--chc-navy);margin:10px 0 0">— Mahmoud Youssef, patient</p>
+          </div>
+        </div>
+      </section>
+
+      <section style="max-width:1280px;margin:0 auto;padding:96px 32px 32px" id="services-section">
+        <span style="font-size:11px;font-weight:700;color:var(--chc-accentText);text-transform:uppercase;letter-spacing:0.08em">{{ t.services.label }}</span>
+        <h3 style="font-size:32px;font-weight:600;color:var(--chc-ink);margin:10px 0 40px;font-family:var(--chc-serif);max-width:640px;text-wrap:pretty">{{ t.services.title }}</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px">
+          <sc-for list="{{ services }}" as="serv" hint-placeholder-count="5">
+            <div style="background:var(--chc-bg);border:1px solid var(--chc-border);border-radius:16px;padding:24px">
+              <div style="width:40px;height:40px;border-radius:10px;background:var(--chc-accentBg);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--chc-accentText);font-size:16px">♥</div>
+              <h4 style="font-size:15px;font-weight:700;color:var(--chc-ink);margin:0;font-family:var(--chc-serif)">{{ serv.title }}</h4>
+              <p style="font-size:12.5px;color:var(--chc-body);line-height:1.6;margin:8px 0 0">{{ serv.description }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="max-width:1280px;margin:0 auto;padding:96px 32px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:40px;flex-wrap:wrap;gap:12px">
+          <div>
+            <span style="font-size:11px;font-weight:700;color:var(--chc-accentText);text-transform:uppercase;letter-spacing:0.08em">{{ t.doctorsHome.label }}</span>
+            <h3 style="font-size:32px;font-weight:600;color:var(--chc-ink);margin:10px 0 0;font-family:var(--chc-serif)">{{ t.doctorsHome.title }}</h3>
+          </div>
+          <button onClick="{{ goDoctors }}" style="font-size:13px;font-weight:600;color:var(--chc-navy);background:none;border:none;cursor:pointer">{{ t.doctorsHome.viewAll }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px">
+          <sc-for list="{{ doctors }}" as="doc" hint-placeholder-count="4">
+            <div style="cursor:pointer" onClick="{{ doc.select }}">
+              <div style="position:relative">
+                <image-slot id="{{ doc.id }}" shape="rounded" radius="14" style="width:100%;height:190px" placeholder="Doctor photo"></image-slot>
+                <span style="position:absolute;top:10px;left:10px;font-size:9.5px;font-weight:700;padding:4px 9px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.04em;{{ doc.availStyle }}">{{ doc.availLabel }}</span>
+              </div>
+              <h4 style="font-size:15px;font-weight:700;color:var(--chc-ink);margin:14px 0 0;font-family:var(--chc-serif)">{{ doc.name }}</h4>
+              <p style="font-size:10.5px;font-weight:700;color:var(--chc-accentText);margin:4px 0 0;text-transform:uppercase;letter-spacing:0.04em">{{ doc.title }}</p>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--chc-border);font-size:12px">
+                <span style="color:var(--chc-muted)">{{ doc.priceLabel }}</span>
+                <button onClick="{{ doc.book }}" style="padding:5px 14px;background:var(--chc-surface);color:var(--chc-navy);border:1px solid var(--chc-navy);border-radius:9999px;font-size:11.5px;font-weight:700;cursor:pointer">{{ t.doctorsHome.book }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="background:#0d2338;color:white;padding:96px 32px" id="about-clinic">
+        <div style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:start">
+          <div>
+            <span style="font-size:11px;font-weight:700;color:#7fa8ff;text-transform:uppercase;letter-spacing:0.08em">{{ t.about.label }}</span>
+            <h3 style="font-size:30px;font-weight:600;color:white;margin:10px 0 20px;font-family:var(--chc-serif);text-wrap:pretty">{{ t.about.title }}</h3>
+            <p style="font-size:13.5px;color:#aab6c6;line-height:1.75;margin:0">{{ aboutP1 }}</p>
+            <p style="font-size:13.5px;color:#aab6c6;line-height:1.75;margin:16px 0 0">{{ aboutP2 }}</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <sc-for list="{{ aboutCards }}" as="card" hint-placeholder-count="4">
+              <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px">
+                <h5 style="font-size:13px;font-weight:700;color:#7fa8ff;margin:0;font-family:var(--chc-serif)">{{ card.title }}</h5>
+                <p style="font-size:11.5px;color:#aab6c6;line-height:1.6;margin:8px 0 0">{{ card.text }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <section style="max-width:1280px;margin:0 auto;padding:96px 32px">
+        <span style="font-size:11px;font-weight:700;color:var(--chc-accentText);text-transform:uppercase;letter-spacing:0.08em">{{ t.steps.label }}</span>
+        <h3 style="font-size:30px;font-weight:600;color:var(--chc-ink);margin:10px 0 44px;font-family:var(--chc-serif)">{{ t.steps.title }}</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:32px">
+          <sc-for list="{{ bookingSteps }}" as="step" hint-placeholder-count="4">
+            <div>
+              <div style="font-size:34px;font-weight:700;color:var(--chc-border2);font-family:var(--chc-serif);margin-bottom:6px">{{ step.num }}</div>
+              <h5 style="font-size:14.5px;font-weight:700;color:var(--chc-ink);margin:0;font-family:var(--chc-serif)">{{ step.title }}</h5>
+              <p style="font-size:12.5px;color:var(--chc-body);line-height:1.6;margin:8px 0 0">{{ step.desc }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="max-width:1280px;margin:0 auto;padding:0 32px 96px">
+        <div style="background:var(--chc-navy);border-radius:24px;padding:56px 32px;text-align:center">
+          <h3 style="font-size:28px;font-weight:600;color:white;margin:0;font-family:var(--chc-serif)">{{ t.cta.title }}</h3>
+          <p style="font-size:13.5px;color:#c3d0e0;margin:14px auto 0;max-width:460px;line-height:1.6">{{ t.cta.subtitle }}</p>
+          <button onClick="{{ goDoctors }}" style="margin-top:26px;padding:14px 30px;background:var(--chc-accentBg);color:var(--chc-navy);font-size:14px;font-weight:700;border-radius:9999px;border:none;cursor:pointer">{{ t.cta.button }}</button>
+        </div>
+      </section>
+
+    </div>
+    </sc-if>
+
+    <!-- ===================== VIEW: DOCTORS LIST ===================== -->
+    <sc-if value="{{ isDoctors }}">
+    <div style="width:100%;max-width:1280px;margin:0 auto;padding:56px 32px;animation:chc-fadein .35s ease">
+      <div style="font-size:12px;color:var(--chc-muted);margin-bottom:6px">
+        <span style="cursor:pointer" onClick="{{ goHome }}">{{ t.doctorsPage.breadcrumb }}</span> / <span style="color:var(--chc-navy);font-weight:600">{{ t.doctorsHome.title }}</span>
+      </div>
+      <h2 style="font-size:30px;font-weight:600;color:var(--chc-ink);margin:0;font-family:var(--chc-serif)">{{ t.doctorsPage.title }}</h2>
+      <p style="font-size:13px;color:var(--chc-body);margin:10px 0 0">{{ doctorsPageSubtitle }}</p>
+
+      <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:16px;padding:20px;margin:28px 0;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end">
+        <div style="flex:1;min-width:220px">
+          <label style="display:block;font-size:10px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.doctorsPage.searchLabel }}</label>
+          <input type="text" value="{{ searchQuery }}" onChange="{{ onSearchChange }}" placeholder="{{ t.doctorsPage.searchPlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--chc-ink)" />
+        </div>
+        <div style="min-width:170px">
+          <label style="display:block;font-size:10px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.doctorsPage.specialtyLabel }}</label>
+          <select value="{{ specialtyFilter }}" onChange="{{ onSpecialtyChange }}" style="width:100%;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--chc-ink)">
+            <option value="all">{{ t.doctorsPage.allSpecialties }}</option>
+            <option value="cardiology">General Cardiology</option>
+            <option value="interventional">Interventional Cardiology</option>
+            <option value="internal">Internal Medicine</option>
+          </select>
+        </div>
+        <div style="min-width:150px">
+          <label style="display:block;font-size:10px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.doctorsPage.sortLabel }}</label>
+          <select value="{{ sortBy }}" onChange="{{ onSortChange }}" style="width:100%;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--chc-ink)">
+            <option value="rating">{{ t.doctorsPage.sortRating }}</option>
+            <option value="experience">{{ t.doctorsPage.sortExperience }}</option>
+            <option value="price-asc">{{ t.doctorsPage.sortPriceAsc }}</option>
+            <option value="price-desc">{{ t.doctorsPage.sortPriceDesc }}</option>
+          </select>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasFilteredDoctors }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px">
+        <sc-for list="{{ filteredDoctors }}" as="doc" hint-placeholder-count="4">
+          <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;overflow:hidden">
+            <div style="padding:22px;display:flex;gap:16px">
+              <image-slot id="{{ doc.id }}" shape="rounded" radius="12" style="width:88px;height:88px;flex-shrink:0" placeholder="Photo"></image-slot>
+              <div style="min-width:0;flex:1">
+                <h3 style="font-size:15px;font-weight:700;color:var(--chc-ink);margin:0;font-family:var(--chc-serif)">{{ doc.name }}</h3>
+                <p style="font-size:11px;font-weight:700;color:var(--chc-accentText);margin:4px 0 0;text-transform:uppercase;letter-spacing:0.03em">{{ doc.title }}</p>
+                <div style="font-size:11.5px;color:var(--chc-muted);margin-top:6px">★ {{ doc.rating }} ({{ doc.reviewCount }}) · {{ doc.experienceYears }} yrs</div>
+              </div>
+            </div>
+            <p style="font-size:12px;color:var(--chc-body);line-height:1.6;margin:0;padding:0 22px 18px">{{ doc.bioShort }}</p>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:var(--chc-bg);padding:16px 22px;border-top:1px solid var(--chc-border)">
+              <div style="font-size:12.5px"><span style="font-weight:700;color:var(--chc-ink)">{{ doc.priceLabel }}</span> <span style="color:var(--chc-muted)">· {{ doc.depositLabel }}</span></div>
+              <button onClick="{{ doc.book }}" style="padding:9px 20px;background:var(--chc-navy);color:white;border:none;border-radius:9999px;font-size:12.5px;font-weight:700;cursor:pointer">{{ t.doctorsPage.book }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ hasNoFilteredDoctors }}">
+        <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:56px;text-align:center;max-width:440px;margin:0 auto">
+          <h4 style="font-size:14px;font-weight:700;color:var(--chc-ink);margin:0">{{ t.doctorsPage.noResultsTitle }}</h4>
+          <p style="font-size:12px;color:var(--chc-muted);margin:8px 0 0">{{ t.doctorsPage.noResultsSubtitle }}</p>
+          <button onClick="{{ clearFilters }}" style="margin-top:16px;padding:9px 18px;background:var(--chc-accentBg);color:var(--chc-accentText);border:none;border-radius:9999px;font-size:12px;font-weight:700;cursor:pointer">{{ t.doctorsPage.clear }}</button>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- ===================== VIEW: DOCTOR PROFILE ===================== -->
+    <sc-if value="{{ isProfile }}">
+    <div style="width:100%;max-width:1280px;margin:0 auto;padding:56px 32px;animation:chc-fadein .35s ease">
+      <div style="font-size:12px;color:var(--chc-muted);margin-bottom:20px">
+        <span style="cursor:pointer" onClick="{{ goDoctors }}">{{ t.doctorsHome.title }}</span> / <span style="color:var(--chc-navy);font-weight:600">{{ doctor.name }}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:26px;display:flex;gap:20px;align-items:center">
+            <image-slot id="{{ doctor.id }}-lg" shape="rounded" radius="16" style="width:110px;height:110px;flex-shrink:0" placeholder="Photo"></image-slot>
+            <div>
+              <h2 style="font-size:22px;font-weight:600;color:var(--chc-ink);margin:0;font-family:var(--chc-serif)">{{ doctor.name }}</h2>
+              <p style="font-size:13px;font-weight:700;color:var(--chc-accentText);margin:6px 0 0">{{ doctor.title }}</p>
+              <p style="font-size:12px;color:var(--chc-muted);margin:4px 0 0">{{ doctor.specialty }}</p>
+              <div style="display:flex;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--chc-border);font-size:12px">
+                <div><strong>{{ doctor.experienceYears }} yrs</strong><div style="color:var(--chc-muted);font-size:10.5px">Experience</div></div>
+                <div><strong>{{ doctor.patientsTreated }}+</strong><div style="color:var(--chc-muted);font-size:10.5px">Patients</div></div>
+                <div><strong>★ {{ doctor.rating }}</strong><div style="color:var(--chc-muted);font-size:10.5px">{{ doctor.reviewCount }} reviews</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:26px">
+            <h4 style="font-size:13px;font-weight:700;color:var(--chc-ink);text-transform:uppercase;letter-spacing:0.04em;border-left:3px solid var(--chc-accentText);padding-left:10px;margin:0 0 14px;font-family:var(--chc-serif)">{{ t.profile.aboutPrefix }} {{ doctor.lastName }}</h4>
+            <p style="font-size:12.5px;color:var(--chc-body);line-height:1.7;margin:0">{{ doctor.bio }}</p>
+          </div>
+
+          <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:26px">
+            <h4 style="font-size:13px;font-weight:700;color:var(--chc-ink);text-transform:uppercase;letter-spacing:0.04em;border-left:3px solid var(--chc-accentText);padding-left:10px;margin:0 0 14px;font-family:var(--chc-serif)">{{ t.profile.education }}</h4>
+            <sc-for list="{{ doctor.education }}" as="edu" hint-placeholder-count="3">
+              <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:12.5px;color:var(--chc-body)">
+                <span style="width:6px;height:6px;border-radius:9999px;background:var(--chc-accentText);margin-top:6px;flex-shrink:0"></span>
+                <span>{{ edu }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:26px">
+            <h4 style="font-size:13px;font-weight:700;color:var(--chc-ink);text-transform:uppercase;letter-spacing:0.04em;border-left:3px solid var(--chc-accentText);padding-left:10px;margin:0 0 18px;font-family:var(--chc-serif)">{{ t.profile.timeline }}</h4>
+            <div style="border-left:2px solid var(--chc-accentBg);margin-left:4px;padding-left:18px;display:flex;flex-direction:column;gap:18px">
+              <sc-for list="{{ doctor.timeline }}" as="item" hint-placeholder-count="3">
+                <div>
+                  <span style="font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--chc-accentText);background:var(--chc-accentBg);padding:3px 8px;border-radius:6px">{{ item.year }}</span>
+                  <h5 style="font-size:12.5px;font-weight:700;color:var(--chc-ink);margin:8px 0 0">{{ item.title }}</h5>
+                  <p style="font-size:11.5px;color:var(--chc-muted);margin:2px 0 0">{{ item.institution }}</p>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:26px">
+            <h4 style="font-size:13px;font-weight:700;color:var(--chc-ink);text-transform:uppercase;letter-spacing:0.04em;border-left:3px solid var(--chc-accentText);padding-left:10px;margin:0 0 18px;font-family:var(--chc-serif)">{{ t.profile.reviews }}</h4>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ reviews }}" as="rev" hint-placeholder-count="3">
+                <div style="background:var(--chc-bg);border-radius:12px;padding:16px;font-size:12px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:6px"><strong>{{ rev.author }}</strong><span style="color:var(--chc-muted);font-size:10.5px">{{ rev.date }}</span></div>
+                  <p style="color:var(--chc-body);font-style:italic;line-height:1.6;margin:0">"{{ rev.comment }}"</p>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--chc-surface);border:1px solid var(--chc-border2);border-radius:18px;padding:26px;position:sticky;top:88px">
+          <h4 style="font-size:14px;font-weight:700;color:var(--chc-ink);margin:0 0 6px;font-family:var(--chc-serif)">{{ t.profile.bookingTitle }}</h4>
+          <p style="font-size:12px;color:var(--chc-body);line-height:1.6;margin:0 0 20px">{{ t.profile.bookingSubtitle }}</p>
+
+          <label style="display:block;font-size:10px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:8px">{{ t.profile.selectDate }}</label>
+          <div style="display:flex;gap:8px;overflow-x-auto;margin-bottom:20px;flex-wrap:wrap">
+            <sc-for list="{{ availableDates }}" as="d" hint-placeholder-count="5">
+              <button onClick="{{ d.select }}" style="{{ d.style }}">
+                <span style="display:block;font-size:9.5px;text-transform:uppercase">{{ d.dayName }}</span>
+                <span style="display:block;font-size:12px;font-weight:700;margin-top:3px">{{ d.dayNum }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <label style="display:block;font-size:10px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:8px">{{ t.profile.selectTime }}</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+            <sc-for list="{{ timeSlots }}" as="slot" hint-placeholder-count="6">
+              <button onClick="{{ slot.select }}" style="{{ slot.style }}">{{ slot.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="background:var(--chc-accentBg);border-radius:14px;padding:16px;margin-bottom:20px">
+            <span style="font-size:10px;font-weight:700;color:var(--chc-accentText);text-transform:uppercase">{{ t.profile.depositModel }}</span>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12px">
+              <div><span style="color:var(--chc-body);display:block;font-size:10px">{{ t.profile.payOnline }}</span><strong style="color:var(--chc-navy);font-size:15px">{{ doctor.depositLabel }}</strong></div>
+              <div><span style="color:var(--chc-body);display:block;font-size:10px">{{ t.profile.payClinic }}</span><strong style="font-size:15px">{{ doctor.remainingLabel }}</strong></div>
+            </div>
+          </div>
+
+          <button onClick="{{ handleBookingStart }}" style="width:100%;padding:14px;background:var(--chc-navy);color:white;border:none;border-radius:9999px;font-size:13.5px;font-weight:700;cursor:pointer">{{ t.profile.secureButton }}</button>
+          <p style="text-align:center;font-size:10.5px;color:var(--chc-muted);margin:12px 0 0">{{ t.profile.guestNote }}</p>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ===================== VIEW: RESERVATION FORM ===================== -->
+    <sc-if value="{{ isReservation }}">
+    <div style="width:100%;max-width:1100px;margin:0 auto;padding:56px 32px;animation:chc-fadein .35s ease">
+      <div style="max-width:440px;margin:0 auto 40px;display:flex;align-items:center;justify-content:space-between;font-size:11.5px">
+        <span style="color:var(--chc-navy);font-weight:700">① {{ t.reservation.step1 }}</span>
+        <span style="flex:1;height:1px;background:var(--chc-border2);margin:0 12px"></span>
+        <span style="color:var(--chc-muted)">② {{ t.reservation.step2 }}</span>
+        <span style="flex:1;height:1px;background:var(--chc-border2);margin:0 12px"></span>
+        <span style="color:var(--chc-muted)">③ {{ t.reservation.step3 }}</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start">
+        <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:28px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--chc-ink);margin:0 0 20px;font-family:var(--chc-serif)">{{ t.reservation.completeTitle }}</h3>
+          <form onSubmit="{{ handleReservationSubmit }}" style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <label style="display:block;font-size:10.5px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.reservation.fullName }}</label>
+              <input type="text" value="{{ resName }}" onChange="{{ onResNameChange }}" placeholder="Ahmed Aly El-Sherif" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--chc-ink)" />
+              <sc-if value="{{ resErrors.name }}"><p style="font-size:11px;color:#dc2626;margin:6px 0 0">{{ resErrors.name }}</p></sc-if>
+            </div>
+            <div>
+              <label style="display:block;font-size:10.5px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.reservation.mobile }}</label>
+              <input type="tel" value="{{ resPhone }}" onChange="{{ onResPhoneChange }}" placeholder="+20 10 1234 5678" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+              <sc-if value="{{ resErrors.phone }}"><p style="font-size:11px;color:#dc2626;margin:6px 0 0">{{ resErrors.phone }}</p></sc-if>
+            </div>
+            <div>
+              <label style="display:block;font-size:10.5px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.reservation.nationalId }}</label>
+              <input type="text" value="{{ resNationalId }}" onChange="{{ onResNationalIdChange }}" placeholder="29012345678901" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+              <sc-if value="{{ resErrors.nationalId }}"><p style="font-size:11px;color:#dc2626;margin:6px 0 0">{{ resErrors.nationalId }}</p></sc-if>
+            </div>
+            <div>
+              <label style="display:block;font-size:10.5px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.reservation.email }}</label>
+              <input type="email" value="{{ resEmail }}" onChange="{{ onResEmailChange }}" placeholder="patient@example.com" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--chc-ink)" />
+            </div>
+            <div>
+              <label style="display:block;font-size:10.5px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:8px">{{ t.reservation.visitPathway }}</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <button type="button" onClick="{{ selectInPerson }}" style="{{ inPersonStyle }}">
+                  <strong style="display:block;font-size:12.5px">{{ t.reservation.inPersonTitle }}</strong>
+                  <span style="font-size:10.5px;color:var(--chc-muted)">{{ t.reservation.inPersonDesc }}</span>
+                </button>
+                <button type="button" onClick="{{ selectVideo }}" style="{{ videoStyle }}">
+                  <strong style="display:block;font-size:12.5px">{{ t.reservation.videoTitle }}</strong>
+                  <span style="font-size:10.5px;color:var(--chc-muted)">{{ t.reservation.videoDesc }}</span>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:10.5px;font-weight:700;color:var(--chc-muted);text-transform:uppercase;margin-bottom:6px">{{ t.reservation.notes }}</label>
+              <textarea value="{{ doctorNotes }}" onChange="{{ onDoctorNotesChange }}" rows="3" placeholder="{{ t.reservation.notesPlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;font-family:inherit;color:var(--chc-ink)"></textarea>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--chc-border)">
+              <button type="button" onClick="{{ goProfile }}" style="background:none;border:none;color:var(--chc-muted);font-size:12.5px;font-weight:600;cursor:pointer">← {{ t.reservation.back }}</button>
+              <button type="submit" style="padding:12px 24px;background:var(--chc-navy);color:white;border:none;border-radius:9999px;font-size:13px;font-weight:700;cursor:pointer">{{ t.reservation.proceed }}</button>
+            </div>
+          </form>
+        </div>
+
+        <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:24px;position:sticky;top:88px">
+          <h4 style="font-size:12.5px;font-weight:700;color:var(--chc-ink);text-transform:uppercase;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--chc-border)">{{ t.reservation.overviewTitle }}</h4>
+          <div style="display:flex;gap:12px;align-items:center;background:var(--chc-bg);padding:12px;border-radius:12px;margin-bottom:16px">
+            <image-slot id="{{ doctor.id }}-sm" shape="rounded" radius="10" style="width:48px;height:48px;flex-shrink:0" placeholder="Photo"></image-slot>
+            <div><strong style="font-size:12.5px">{{ doctor.name }}</strong><div style="font-size:11px;color:var(--chc-accentText);font-weight:600">{{ doctor.title }}</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--chc-muted)">{{ t.reservation.date }}</span><strong>{{ selectedDate }}</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--chc-muted)">{{ t.reservation.time }}</span><strong style="font-family:'JetBrains Mono',monospace">{{ selectedTimeSlot }}</strong></div>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--chc-border);margin:16px 0" />
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:8px"><span style="color:var(--chc-muted)">{{ t.reservation.totalFee }}</span><strong>{{ doctor.priceLabel }}</strong></div>
+          <div style="display:flex;justify-content:space-between;background:var(--chc-accentBg);padding:10px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--chc-accentText)"><span>{{ t.reservation.depositNow }}</span><span>{{ doctor.depositLabel }}</span></div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ===================== VIEW: PAYMENT ===================== -->
+    <sc-if value="{{ isPayment }}">
+    <div style="width:100%;max-width:1100px;margin:0 auto;padding:56px 32px;animation:chc-fadein .35s ease">
+      <div style="max-width:440px;margin:0 auto 40px;display:flex;align-items:center;justify-content:space-between;font-size:11.5px">
+        <span style="color:var(--chc-navy);font-weight:700">✓ {{ t.reservation.step1 }}</span>
+        <span style="flex:1;height:1px;background:var(--chc-navy);margin:0 12px"></span>
+        <span style="color:var(--chc-navy);font-weight:700">② {{ t.reservation.step2 }}</span>
+        <span style="flex:1;height:1px;background:var(--chc-border2);margin:0 12px"></span>
+        <span style="color:var(--chc-muted)">③ {{ t.reservation.step3 }}</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start">
+        <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:28px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--chc-ink);margin:0 0 20px;font-family:var(--chc-serif)">{{ t.payment.title }}</h3>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px">
+            <button type="button" onClick="{{ selectCard }}" style="{{ cardTabStyle }}">{{ t.payment.tabCard }}</button>
+            <button type="button" onClick="{{ selectFawry }}" style="{{ fawryTabStyle }}">{{ t.payment.tabFawry }}</button>
+            <button type="button" onClick="{{ selectVodafone }}" style="{{ vodafoneTabStyle }}">{{ t.payment.tabVodafone }}</button>
+            <button type="button" onClick="{{ selectClinic }}" style="{{ clinicTabStyle }}">{{ t.payment.tabClinic }}</button>
+          </div>
+
+          <form onSubmit="{{ handlePaymentSubmit }}" style="display:flex;flex-direction:column;gap:16px">
+            <sc-if value="{{ isCardMethod }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <input type="text" value="{{ cardName }}" onChange="{{ onCardNameChange }}" placeholder="{{ t.payment.cardholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--chc-ink)" />
+                <input type="text" value="{{ cardNumber }}" onChange="{{ onCardNumberChange }}" placeholder="{{ t.payment.cardNumber }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <input type="text" value="{{ cardExpiry }}" onChange="{{ onCardExpiryChange }}" placeholder="MM/YY" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+                  <input type="password" value="{{ cardCvv }}" onChange="{{ onCardCvvChange }}" placeholder="CVV" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isFawryMethod }}">
+              <div style="background:#0d2338;color:white;border-radius:14px;padding:24px;text-align:center">
+                <span style="font-size:10px;color:#aab6c6;text-transform:uppercase;letter-spacing:0.06em">{{ t.payment.kioskLabel }}</span>
+                <h3 style="font-size:26px;font-family:'JetBrains Mono',monospace;color:#7fa8ff;margin:8px 0;letter-spacing:0.1em">{{ fawryBillCode }}</h3>
+                <button type="button" onClick="{{ handleCopyFawryCode }}" style="margin-top:6px;padding:6px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#dbe4f0;font-size:11.5px;cursor:pointer">{{ fawryCopyLabel }}</button>
+              </div>
+              <p style="font-size:11.5px;color:var(--chc-body);line-height:1.7;margin:0">{{ t.payment.fawryHint }}</p>
+            </sc-if>
+            <sc-if value="{{ isVodafoneMethod }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;gap:10px">
+                  <input type="tel" value="{{ vfWallet }}" onChange="{{ onVfWalletChange }}" placeholder="+20 10 1234 5678" style="flex:1;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+                  <sc-if value="{{ vfOtpNotSent }}"><button type="button" onClick="{{ handleSendVfOtp }}" style="padding:11px 18px;background:var(--chc-navy);color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ t.payment.sendOtp }}</button></sc-if>
+                </div>
+                <sc-if value="{{ vfOtpSent }}">
+                  <input type="password" value="{{ vfOtp }}" onChange="{{ onVfOtpChange }}" placeholder="{{ t.payment.otpPlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;text-align:center;letter-spacing:0.3em;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isClinicMethod }}">
+              <div style="background:#ecfdf5;border:1px solid #bbf7d0;border-radius:14px;padding:20px;font-size:12.5px;color:#166534;line-height:1.7">{{ clinicNoteText }}</div>
+            </sc-if>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--chc-border)">
+              <button type="button" onClick="{{ goReservation }}" style="background:none;border:none;color:var(--chc-muted);font-size:12.5px;font-weight:600;cursor:pointer">← {{ t.payment.back }}</button>
+              <button type="submit" style="padding:12px 24px;background:var(--chc-navy);color:white;border:none;border-radius:9999px;font-size:13px;font-weight:700;cursor:pointer">{{ paymentSubmitLabel }}</button>
+            </div>
+          </form>
+        </div>
+
+        <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:18px;padding:24px;position:sticky;top:88px">
+          <h4 style="font-size:12.5px;font-weight:700;color:var(--chc-ink);text-transform:uppercase;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--chc-border)">{{ t.payment.summaryTitle }}</h4>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:8px"><span style="color:var(--chc-muted)">{{ t.reservation.date }}</span><strong>{{ selectedDate }}</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:16px"><span style="color:var(--chc-muted)">{{ t.reservation.time }}</span><strong style="font-family:'JetBrains Mono',monospace">{{ selectedTimeSlot }}</strong></div>
+          <hr style="border:none;border-top:1px solid var(--chc-border);margin-bottom:16px" />
+          <div style="display:flex;justify-content:space-between;background:var(--chc-accentBg);padding:10px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--chc-accentText)"><span>{{ t.payment.depositNow }}</span><span>{{ depositNowLabel }}</span></div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ===================== VIEW: CONFIRMATION ===================== -->
+    <sc-if value="{{ isConfirmation }}">
+    <div style="max-width:640px;margin:0 auto;padding:64px 32px;animation:chc-fadein .35s ease">
+      <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:24px;padding:36px">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="width:60px;height:60px;border-radius:9999px;background:#ecfdf5;border:1px solid #bbf7d0;display:flex;align-items:center;justify-content:center;font-size:28px;color:#059669;margin:0 auto 16px;animation:chc-bounce 1.6s infinite">✓</div>
+          <span style="font-size:10.5px;font-weight:700;color:#059669;background:#ecfdf5;padding:4px 12px;border-radius:9999px;text-transform:uppercase">{{ t.confirmation.badge }}</span>
+          <h2 style="font-size:24px;font-weight:600;color:var(--chc-ink);margin:14px 0 0;font-family:var(--chc-serif)">{{ t.confirmation.title }}</h2>
+          <p style="font-size:12.5px;color:var(--chc-body);margin:8px 0 0">{{ t.confirmation.subtitle }}</p>
+        </div>
+
+        <div style="background:#0d2338;color:white;border-radius:16px;padding:18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+          <div><span style="font-size:10px;color:#aab6c6;text-transform:uppercase">{{ t.confirmation.refLabel }}</span><div style="font-size:17px;font-family:'JetBrains Mono',monospace;color:#7fa8ff;margin-top:4px">{{ referenceNumber }}</div></div>
+          <span style="font-size:11px;font-weight:700;color:#34d399">● {{ t.confirmation.confirmed }}</span>
+        </div>
+
+        <div style="background:var(--chc-bg);border-radius:16px;padding:20px;margin-bottom:22px;display:flex;flex-direction:column;gap:10px;font-size:12.5px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--chc-muted)">{{ t.confirmation.patient }}</span><strong>{{ resName }}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--chc-muted)">{{ t.confirmation.physician }}</span><strong>{{ doctor.name }}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--chc-muted)">{{ t.confirmation.date }}</span><strong>{{ selectedDate }}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--chc-muted)">{{ t.confirmation.time }}</span><strong style="font-family:'JetBrains Mono',monospace">{{ selectedTimeSlot }}</strong></div>
+          <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--chc-border2)"><span style="color:var(--chc-muted)">{{ t.confirmation.remaining }}</span><strong style="color:var(--chc-accentText)">{{ remainingAtClinicLabel }}</strong></div>
+        </div>
+
+        <div style="background:#ecfdf5;border:1px solid #bbf7d0;border-radius:16px;padding:16px;margin-bottom:22px;font-size:12px;color:#166534;line-height:1.6">{{ whatsappText }}</div>
+
+        <sc-if value="{{ isAccountNotCreated }}">
+          <div style="border:1.5px dashed var(--chc-border2);border-radius:16px;padding:20px;margin-bottom:22px">
+            <h4 style="font-size:12.5px;font-weight:700;color:var(--chc-ink);margin:0 0 10px">{{ t.confirmation.secureTitle }}</h4>
+            <form onSubmit="{{ handleCreateAccountFromConfirmation }}" style="display:flex;gap:10px;flex-wrap:wrap">
+              <input type="password" value="{{ ccPassword }}" onChange="{{ onCcPasswordChange }}" placeholder="{{ t.confirmation.passwordPlaceholder }}" style="flex:1;min-width:180px;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--chc-ink)" />
+              <button type="submit" style="padding:10px 18px;background:var(--chc-navy);color:white;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer">{{ t.confirmation.activate }}</button>
+            </form>
+          </div>
+        </sc-if>
+        <sc-if value="{{ accountCreated }}">
+          <div style="background:#ecfdf5;border:1px solid #bbf7d0;border-radius:16px;padding:14px;margin-bottom:22px;font-size:12px;color:#166534">{{ t.confirmation.activated }}</div>
+        </sc-if>
+
+        <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+          <button onClick="{{ goHome }}" style="padding:12px 24px;background:var(--chc-navy);color:white;border:none;border-radius:9999px;font-size:13px;font-weight:700;cursor:pointer">{{ backHomeText }}</button>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ===================== VIEW: LOGIN ===================== -->
+    <sc-if value="{{ isLogin }}">
+    <div style="max-width:900px;margin:0 auto;padding:64px 32px;animation:chc-fadein .35s ease">
+      <div style="display:grid;grid-template-columns:1fr 1fr;background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:24px;overflow:hidden">
+        <div style="background:#0d2338;color:white;padding:36px;display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <h3 style="font-size:16px;font-weight:600;font-family:var(--chc-serif);margin:0">{{ clinicName }}</h3>
+            <p style="font-size:10.5px;color:#7fa8ff;text-transform:uppercase;margin:6px 0 0">{{ t.login.portalLabel }}</p>
+            <h4 style="font-size:15px;font-weight:600;margin:28px 0 16px;font-family:var(--chc-serif)">{{ t.login.unlockTitle }}</h4>
+            <div style="display:flex;flex-direction:column;gap:14px;font-size:11.5px;color:#aab6c6">
+              <div>✓ {{ t.login.benefit1 }}</div>
+              <div>✓ {{ t.login.benefit2 }}</div>
+              <div>✓ {{ t.login.benefit3 }}</div>
+            </div>
+          </div>
+          <p style="font-size:10.5px;color:#7d8ba0;line-height:1.6;margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1)">{{ t.login.pdpl }}</p>
+        </div>
+        <div style="padding:36px;background:var(--chc-surface)">
+          <h3 style="font-size:17px;font-weight:600;color:var(--chc-ink);margin:0;font-family:var(--chc-serif)">{{ t.login.signInTitle }}</h3>
+          <p style="font-size:11.5px;color:var(--chc-muted);margin:6px 0 20px">{{ t.login.signInSubtitle }}</p>
+          <sc-if value="{{ loginError }}"><div style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:11.5px;padding:10px 14px;border-radius:10px;margin-bottom:14px">{{ loginError }}</div></sc-if>
+          <form onSubmit="{{ handleLoginSubmit }}" style="display:flex;flex-direction:column;gap:14px">
+            <input type="tel" value="{{ loginPhone }}" onChange="{{ onLoginPhoneChange }}" placeholder="{{ t.login.phonePlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:12px 14px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+            <input type="password" value="{{ loginPassword }}" onChange="{{ onLoginPasswordChange }}" placeholder="{{ t.login.passwordPlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--chc-ink)" />
+            <button type="submit" style="padding:13px;background:var(--chc-navy);color:white;border:none;border-radius:9999px;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:6px">{{ t.login.signIn }}</button>
+          </form>
+          <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--chc-border);text-align:center;font-size:12px;color:var(--chc-muted)">
+            {{ t.login.noAccount }} <span style="color:var(--chc-accentText);font-weight:600;cursor:pointer" onClick="{{ goRegister }}">{{ t.login.registerFree }}</span>
+          </div>
+          <div style="text-align:center;margin-top:10px"><span style="font-size:11.5px;color:var(--chc-muted);cursor:pointer" onClick="{{ goDoctors }}">{{ t.login.skipGuest }}</span></div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ===================== VIEW: REGISTER ===================== -->
+    <sc-if value="{{ isRegister }}">
+    <div style="max-width:460px;margin:0 auto;padding:64px 32px;animation:chc-fadein .35s ease">
+      <div style="background:var(--chc-surface);border:1px solid var(--chc-border);border-radius:24px;padding:32px">
+        <h3 style="font-size:17px;font-weight:600;color:var(--chc-ink);margin:0;font-family:var(--chc-serif)">{{ t.register.title }}</h3>
+        <p style="font-size:11.5px;color:var(--chc-muted);margin:6px 0 20px">{{ registerSubtitle }}</p>
+        <sc-if value="{{ regError }}"><div style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:11.5px;padding:10px 14px;border-radius:10px;margin-bottom:14px">{{ regError }}</div></sc-if>
+        <form onSubmit="{{ handleRegisterSubmit }}" style="display:flex;flex-direction:column;gap:14px">
+          <input type="text" value="{{ regName }}" onChange="{{ onRegNameChange }}" placeholder="{{ t.register.namePlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--chc-ink)" />
+          <input type="tel" value="{{ regPhone }}" onChange="{{ onRegPhoneChange }}" placeholder="{{ t.register.phonePlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--chc-ink)" />
+          <input type="email" value="{{ regEmail }}" onChange="{{ onRegEmailChange }}" placeholder="{{ t.register.emailPlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--chc-ink)" />
+          <input type="password" value="{{ regPassword }}" onChange="{{ onRegPasswordChange }}" placeholder="{{ t.register.passwordPlaceholder }}" style="width:100%;box-sizing:border-box;background:var(--chc-bg);border:1px solid var(--chc-border2);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--chc-ink)" />
+          <label style="display:flex;gap:10px;align-items:flex-start;font-size:11px;color:var(--chc-body);line-height:1.5">
+            <input type="checkbox" checked="{{ regConsent }}" onChange="{{ onRegConsentChange }}" style="margin-top:2px" />
+            <span>{{ t.register.consent }}</span>
+          </label>
+          <button type="submit" style="padding:13px;background:var(--chc-navy);color:white;border:none;border-radius:9999px;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:4px">{{ t.register.button }}</button>
+        </form>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--chc-border);text-align:center;font-size:12px;color:var(--chc-muted)">
+          {{ t.register.already }} <span style="color:var(--chc-accentText);font-weight:600;cursor:pointer" onClick="{{ goLogin }}">{{ t.register.signIn }}</span>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </main>
+
+  <footer style="background:var(--chc-surface);border-top:1px solid var(--chc-border);padding:56px 32px 0">
+    <div style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px;padding-bottom:36px">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:30px;height:30px;border-radius:8px;background:var(--chc-navy);display:flex;align-items:center;justify-content:center;color:white;font-family:var(--chc-serif);font-style:italic;font-size:14px">C</div>
+          <strong style="font-family:var(--chc-serif);font-size:14px">{{ clinicName }}</strong>
+        </div>
+        <p style="font-size:11.5px;color:var(--chc-muted);line-height:1.6;max-width:260px">{{ t.footer.tagline }}</p>
+      </div>
+      <div>
+        <h5 style="font-size:10.5px;font-weight:700;color:var(--chc-accentText);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 14px">{{ t.footer.visitUs }}</h5>
+        <p style="font-size:12px;color:var(--chc-body);line-height:1.9;margin:0">{{ clinicAddress }}<br />{{ clinicPhone }}</p>
+      </div>
+      <div>
+        <h5 style="font-size:10.5px;font-weight:700;color:var(--chc-accentText);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 14px">{{ t.footer.explore }}</h5>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--chc-body)">
+          <span style="cursor:pointer" onClick="{{ goDoctors }}">{{ t.nav.doctors }}</span>
+          <span style="cursor:pointer" onClick="{{ scrollServices }}">{{ t.nav.services }}</span>
+          <span style="cursor:pointer" onClick="{{ scrollAbout }}">{{ t.nav.about }}</span>
+          <span style="cursor:pointer" onClick="{{ goLogin }}">{{ t.nav.signin }}</span>
+        </div>
+      </div>
+      <div>
+        <h5 style="font-size:10.5px;font-weight:700;color:var(--chc-accentText);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 14px">{{ t.footer.hours }}</h5>
+        <p style="font-size:12px;color:var(--chc-body);line-height:1.9;margin:0;white-space:pre-line">{{ clinicHours }}</p>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--chc-border);padding:18px 0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--chc-muted);max-width:1280px;margin:0 auto">
+      <span>© 2026 {{ clinicName }}. {{ t.footer.rights }}</span>
+      <span>{{ t.footer.poweredBy }}</span>
+    </div>
+  </footer>
+
+  <div style="position:fixed;bottom:20px;left:20px;z-index:50">
+    <sc-if value="{{ demoOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="width:220px;background:#0d2338;border-radius:16px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.25)">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.08)">
+          <span style="font-size:11px;font-weight:700;color:white">Preview Screens</span>
+          <button onClick="{{ toggleDemo }}" style="background:none;border:none;color:#aab6c6;font-size:11px;cursor:pointer">✕</button>
+        </div>
+        <div style="max-height:260px;overflow-y:auto;padding:6px">
+          <sc-for list="{{ demoScreens }}" as="scr" hint-placeholder-count="8">
+            <button onClick="{{ scr.go }}" style="{{ scr.style }}">{{ scr.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ demoClosed }}">
+      <button onClick="{{ toggleDemo }}" style="padding:10px 16px;background:#0d2338;color:white;border:none;border-radius:9999px;font-size:11.5px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,0.2)">⌗ Preview Screens</button>
+    </sc-if>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const MOCK_DOCTORS = [
+  { id: 'doc-ahmed', name: 'Dr. Ahmed Samir', title: 'Consultant Cardiologist', specialty: 'General Cardiology & Rhythm Disorders', experienceYears: 10, patientsTreated: 3200, rating: 4.9, reviewCount: 312, price: 350, deposit: 100, nextAvailable: 'today',
+    bio: "Dr. Ahmed Samir is a renowned Consultant Cardiologist specializing in electrophysiology, cardiac pacing, and preventive cardiology. With over a decade of dedicated clinical practice in Cairo and Europe, he focuses on personalized heart care.",
+    education: ['MD in Cardiology - Cairo University (Kasr Al-Ainy)', 'Fellowship in Cardiac Rhythm Management - ESC', 'Member, Egyptian Society of Cardiology'],
+    timeline: [{ year: '2018 - Present', title: 'Senior Cardiology Consultant', institution: 'Cairo Heart Center' }, { year: '2014 - 2018', title: 'Assistant Professor of Cardiology', institution: 'Cairo University Hospital' }, { year: '2011 - 2014', title: 'Cardiology Registrar', institution: 'National Heart Institute' }] },
+  { id: 'doc-sara', name: 'Dr. Sara Mansour', title: 'Internal Medicine Specialist', specialty: 'Internal Medicine & Metabolic Health', experienceYears: 7, patientsTreated: 2100, rating: 4.8, reviewCount: 185, price: 250, deposit: 75, nextAvailable: 'tomorrow',
+    bio: "Dr. Sara Mansour specializes in comprehensive internal medicine, managing chronic conditions like hypertension, diabetes, and metabolic syndrome, with a focus on cardiometabolic health.",
+    education: ["Master's in Internal Medicine - Ain Shams University", 'Diploma in Diabetes & Endocrinology - RCP, UK', 'Egyptian Board of Internal Medicine'],
+    timeline: [{ year: '2020 - Present', title: 'Internal Medicine Specialist', institution: 'Cairo Heart Center' }, { year: '2017 - 2020', title: 'Internal Medicine Specialist', institution: 'Demerdash Hospital' }, { year: '2015 - 2017', title: 'Resident Physician', institution: 'Ain Shams University Hospitals' }] },
+  { id: 'doc-omar', name: 'Dr. Omar Khalil', title: 'Interventional Cardiology Consultant', specialty: 'Interventional Cardiology & Coronary Stenting', experienceYears: 14, patientsTreated: 4500, rating: 4.95, reviewCount: 540, price: 500, deposit: 150, nextAvailable: 'today',
+    bio: "Dr. Omar Khalil is a pioneer in interventional cardiology in Cairo, having performed thousands of complex coronary angioplasties, stenting, and transcatheter valve replacements.",
+    education: ['PhD in Interventional Cardiology - Cairo University', 'Fellowship - Cleveland Clinic, USA', 'Fellow, American College of Cardiology (FACC)'],
+    timeline: [{ year: '2015 - Present', title: 'Head of Interventional Unit', institution: 'Cairo Heart Center' }, { year: '2011 - 2015', title: 'Consultant Interventionalist', institution: 'Dar Al Fouad Hospital' }, { year: '2008 - 2011', title: 'Cardiology Fellow', institution: 'Kasr Al-Ainy University Hospital' }] },
+  { id: 'doc-nour', name: 'Dr. Nour Hassan', title: 'Cardiac Imaging Specialist', specialty: 'Cardiac Ultrasound, MRI & CT Scan', experienceYears: 8, patientsTreated: 1800, rating: 4.85, reviewCount: 122, price: 300, deposit: 100, nextAvailable: 'monday',
+    bio: "Dr. Nour Hassan focuses on advanced diagnostic cardiac imaging, including stress echocardiography, cardiac MRI, and multi-slice coronary CT, ensuring accurate disease staging.",
+    education: ['M.Sc. in Cardiovascular Medicine - Cairo University', 'Certified in Advanced Cardiac MRI - EACVI', 'Member, Society of Cardiovascular CT (SCCT)'],
+    timeline: [{ year: '2021 - Present', title: 'Lead Cardiac Imaging Specialist', institution: 'Cairo Heart Center' }, { year: '2018 - 2021', title: 'Cardiovascular Imaging Specialist', institution: 'National Heart Institute' }, { year: '2014 - 2018', title: 'Cardiology Specialist Registrar', institution: 'Cairo University Hospital' }] }
+];
+
+const MOCK_SERVICES = [
+  { id: 'serv-consult', title: 'Comprehensive Cardiac Consultation', description: 'Detailed evaluation of heart health, symptom review, and risk factor assessment.' },
+  { id: 'serv-ecg', title: 'ECG & Stress Testing', description: 'Electrocardiogram monitoring at rest and under exercise to detect rhythm abnormalities.' },
+  { id: 'serv-echo', title: 'Transthoracic Echocardiography', description: 'High-resolution cardiac ultrasound mapping blood flow and valve efficiency.' },
+  { id: 'serv-holter', title: '24/48-Hour Holter Monitoring', description: 'Continuous ambulatory ECG recording to trace transient arrhythmias.' },
+  { id: 'serv-imaging', title: 'Cardiac Imaging & CT Angiography', description: 'Non-invasive imaging detailing coronary artery structures and calcification.' }
+];
+
+const MOCK_REVIEWS = [
+  { id: 'rev-1', author: 'Mohamed El-Tayeb', date: 'Jul 12, 2026', comment: "Excellent care and professionalism. Dr. Ahmed spent 45 minutes explaining my ECG results in detail." },
+  { id: 'rev-2', author: 'Fatma Abdel Rahman', date: 'Jul 05, 2026', comment: "Cleanest clinic in Nasr City. Dr. Sara is amazing and has managed my mother's hypertension with high caution." },
+  { id: 'rev-3', author: 'Youssef Shenouda', date: 'Jun 28, 2026', comment: "Dr. Omar Khalil is a master in coronary interventions. I still visit annually for stress tests." }
+];
+
+const CLINIC = { name: 'Cairo Heart Center', tagline: 'Nasr City · Since 2009', phone: '+20 2 2401 9988', address: '14 Abbas El Akkad St, Nasr City, Cairo', hours: 'Sun \u2013 Thu \u00b7 9:00 AM \u2013 9:00 PM\nSat \u00b7 10:00 AM \u2013 6:00 PM\nFri \u00b7 Closed', patientsCount: '12,000+', doctorsCount: 8, rating: 4.9 };
+
+const AVAILABLE_DATES = [
+  { key: 'today', dayName: 'Sun', dayNum: 19, full: 'Today, July 19, 2026' },
+  { key: 'tomorrow', dayName: 'Mon', dayNum: 20, full: 'Tomorrow, July 20, 2026' },
+  { key: 'tue', dayName: 'Tue', dayNum: 21, full: 'Tuesday, July 21, 2026' },
+  { key: 'wed', dayName: 'Wed', dayNum: 22, full: 'Wednesday, July 22, 2026' },
+  { key: 'thu', dayName: 'Thu', dayNum: 23, full: 'Thursday, July 23, 2026' }
+];
+const TIME_SLOTS = ['11:30 AM', '12:15 PM', '04:00 PM', '05:30 PM', '07:00 PM', '08:30 PM'];
+
+const DEMO_SCREENS = [
+  { key: 'home', label: '1. Home' }, { key: 'doctors', label: '2. Our Doctors' }, { key: 'profile', label: '3. Doctor Profile' },
+  { key: 'reservation', label: '4. Reservation Form' }, { key: 'payment', label: '5. Payment' }, { key: 'confirmation', label: '6. Confirmation' },
+  { key: 'login', label: '7. Patient Login' }, { key: 'register', label: '8. Patient Register' }
+];
+
+// Embedded fallback dictionaries — mirror locales/en.json and locales/ar.json.
+// componentDidMount fetches the real files and overwrites these once loaded;
+// this guarantees the UI is never blocked/blank if the fetch fails.
+const FALLBACK_I18N = {
+  en: { nav: { home: 'Home', doctors: 'Our Doctors', services: 'Services', about: 'About', signin: 'Sign In', logout: 'Logout', book: 'Book Appointment' },
+    hero: { badge: 'Premium Cardiac Care · Nasr City', title: 'Expert Heart Care in the Heart of Cairo', subtitle: 'Since 2009, {clinic} has combined decades of clinical excellence with state-of-the-art imaging to deliver comprehensive cardiology and internal medicine care.', cta1: 'Book an appointment', cta2: 'Explore services', statPatients: 'Patients Treated', statSpecialists: 'Specialists', statRating: 'Patient Rating' },
+    services: { label: 'What We Offer', title: 'Comprehensive cardiac & internal medicine services' },
+    doctorsHome: { label: 'Our Specialists', title: 'Board-certified experts', viewAll: 'View all doctors →', book: 'Book' },
+    about: { label: 'About The Clinic', title: 'Fifteen years of trusted cardiac care in Nasr City', p1: 'Founded in 2009, {clinic} began as a small consultation practice and has grown into one of the most respected private cardiology clinics in Cairo.', p2: 'Today, our team of {doctors} specialists sees over {patients} patients each year — combining international standards of care with the personal touch of a neighborhood clinic.', excellenceTitle: 'Excellence', excellenceText: 'Internationally trained specialists using current clinical protocols.', transparencyTitle: 'Transparency', transparencyText: 'Clear fees, transparent deposit model, ETA e-receipts on every payment.', continuityTitle: 'Continuity', continuityText: 'Every patient sees the same consultant for follow-up visits and care.', accessibilityTitle: 'Accessibility', accessibilityText: 'WhatsApp-first communication, Fawry and Vodafone Cash payment options.' },
+    steps: { label: 'How Booking Works', title: 'Four steps. No account required.', s1t: 'Choose your doctor', s1d: 'Browse our specialists and pick the right expert for your visit.', s2t: 'Reserve a slot', s2d: 'Pick your date and time in seconds — no account required.', s3t: 'Pay the deposit', s3d: 'Confirm with a small deposit via Card, Fawry, or Vodafone Cash.', s4t: 'Get WhatsApp reminders', s4d: "We'll message you 48h and 2h before your visit." },
+    cta: { title: 'Ready to book your visit?', subtitle: 'Choose your specialist, pick a time that works, and secure your slot with a small deposit. No account required.', button: 'Book an appointment' },
+    footer: { tagline: 'Excellence in cardiovascular care since 2009. Serving Cairo from our Nasr City facility.', visitUs: 'Visit Us', explore: 'Explore', hours: 'Hours', rights: 'Licensed by the Egyptian Ministry of Health.', poweredBy: 'Powered by Cliniqo' },
+    doctorsPage: { breadcrumb: 'Home', title: 'Browse our clinical specialists', subtitle: 'Certified physicians of {clinic}. Book secure consultations instantly, no registration required.', searchLabel: 'Search', searchPlaceholder: 'Search by doctor name or specialty...', specialtyLabel: 'Specialty', allSpecialties: 'All Specialties', sortLabel: 'Sort By', sortRating: 'Highest Rating', sortExperience: 'Years of Experience', sortPriceAsc: 'Price: Low to High', sortPriceDesc: 'Price: High to Low', noResultsTitle: 'No Specialists Found', noResultsSubtitle: 'Try clearing your search filters.', clear: 'Clear Filters', book: 'Book' },
+    profile: { aboutPrefix: 'About Dr.', education: 'Education & Certifications', timeline: 'Work Experience Timeline', reviews: 'Recent Patient Reviews', bookingTitle: 'Live Appointment Booking', bookingSubtitle: 'Select your date and time. Your slot is held during checkout.', selectDate: '1. Select Date', selectTime: '2. Select Time', depositModel: 'Deposit Model', payOnline: 'Pay Online Now', payClinic: 'Pay at Clinic', secureButton: 'Secure Session — Proceed to Checkout', guestNote: 'Guest checkout enabled · No registration required' },
+    reservation: { step1: 'Patient Info', step2: 'Payment', step3: 'Confirm', completeTitle: 'Complete Your Reservation', fullName: 'Patient Full Name *', mobile: 'Mobile Number (+20) *', nationalId: 'National ID (Optional, 14 digits)', email: 'Email (Optional)', visitPathway: 'Visit Pathway', inPersonTitle: 'In-Person Visit', inPersonDesc: 'Nasr City branch face-to-face diagnostics.', videoTitle: 'Telehealth Video', videoDesc: 'Secure link sent via WhatsApp.', notes: 'Symptoms / Notes (Optional)', notesPlaceholder: 'Chest tightness, medication list, previous stent details...', back: 'Back', proceed: 'Proceed to Payment', overviewTitle: 'Booking Overview', date: 'Date:', time: 'Time:', totalFee: 'Total Fee:', depositNow: 'Deposit Now:' },
+    payment: { title: 'Secure Deposit Checkout', tabCard: 'Card', tabFawry: 'Fawry', tabVodafone: 'VF Cash', tabClinic: 'At Clinic', cardholder: 'Cardholder Name', cardNumber: '4000 1234 5678 9010', fawryHint: 'Pay this code at any Fawry kiosk or via the FawryPay app within 4 hours to confirm your booking.', kioskLabel: 'Kiosk Payment Code', copyCode: 'Copy Code', copied: 'Copied!', sendOtp: 'Send OTP', otpPlaceholder: '6-digit OTP', clinicNote: 'Zero deposit — pay the full amount of {price} on arrival at reception. Priority is given to online-paid reservations.', back: 'Back', submitDefault: 'Complete Secure Checkout', submitClinic: 'Confirm Booking', summaryTitle: 'Checkout Summary', depositNow: 'Deposit Now:' },
+    confirmation: { badge: 'Booking Confirmed', title: 'Appointment Secured!', subtitle: 'A digital receipt has been generated for your visit.', refLabel: 'Reference Code', confirmed: 'Confirmed', patient: 'Patient:', physician: 'Physician:', date: 'Date:', time: 'Time:', remaining: 'Remaining at Clinic:', whatsapp: 'A WhatsApp confirmation with directions has been sent to {phone}. Reminders fire 48h and 2h before your visit.', secureTitle: 'Secure Your Clinical History', passwordPlaceholder: 'Create portal password', activate: 'Activate', activated: 'Portal activated successfully!', backHome: 'Back to {clinic}' },
+    login: { portalLabel: 'Secure Patient Portal', unlockTitle: 'Unlock Your Electronic Medical File', benefit1: 'Access diagnostic reports and imaging', benefit2: 'Digital tax e-receipts for every visit', benefit3: 'Live queue tracking on visit day', pdpl: "Encrypted in compliance with Egypt's PDPL Law No. 151 of 2020.", signInTitle: 'Patient Portal Sign In', signInSubtitle: 'Sign in with your registered mobile number.', phonePlaceholder: '+20 10 1234 5678', passwordPlaceholder: '••••••••', signIn: 'Sign In to Portal', noAccount: 'No account?', registerFree: 'Register free', skipGuest: '← Skip to guest booking' },
+    register: { title: 'Establish Patient File', subtitle: 'Free registration under {clinic}.', namePlaceholder: 'Full name (as in National ID)', phonePlaceholder: '+20 10 1234 5678', emailPlaceholder: 'Email (optional)', passwordPlaceholder: 'Create password', consent: "I consent to data processing under Egypt's PDPL Law No. 151 of 2020.", button: 'Register Patient File', already: 'Already registered?', signIn: 'Sign in' } },
+  ar: { nav: { home: 'الرئيسية', doctors: 'أطباؤنا', services: 'الخدمات', about: 'من نحن', signin: 'تسجيل الدخول', logout: 'تسجيل الخروج', book: 'احجز موعد' },
+    hero: { badge: 'رعاية قلبية متميزة · مدينة نصر', title: 'رعاية قلبية متخصصة في قلب القاهرة', subtitle: 'منذ عام 2009، يجمع {clinic} بين عقود من التميز السريري وأحدث تقنيات التصوير لتقديم رعاية شاملة في أمراض القلب والباطنة.', cta1: 'احجز موعدًا', cta2: 'استكشف الخدمات', statPatients: 'مريض تمت رعايته', statSpecialists: 'استشاري', statRating: 'تقييم المرضى' },
+    services: { label: 'خدماتنا', title: 'خدمات شاملة لأمراض القلب والباطنة' },
+    doctorsHome: { label: 'نخبة الاستشاريين', title: 'خبراء معتمدون', viewAll: 'عرض جميع الأطباء ←', book: 'احجز' },
+    about: { label: 'عن العيادة', title: 'خمسة عشر عامًا من الرعاية القلبية الموثوقة في مدينة نصر', p1: 'تأسس {clinic} عام 2009 كعيادة استشارات صغيرة، ونما ليصبح واحدًا من أكثر عيادات القلب الخاصة احترامًا في القاهرة.', p2: 'اليوم، يستقبل فريقنا المكوّن من {doctors} استشاريين أكثر من {patients} مريض سنويًا.', excellenceTitle: 'التميّز', excellenceText: 'استشاريون مدربون دوليًا يتبعون أحدث البروتوكولات السريرية.', transparencyTitle: 'الشفافية', transparencyText: 'رسوم واضحة، نظام عربون شفاف، وإيصالات إلكترونية ضريبية.', continuityTitle: 'الاستمرارية', continuityText: 'كل مريض يتابع مع نفس الاستشاري في الزيارات التالية.', accessibilityTitle: 'سهولة الوصول', accessibilityText: 'تواصل عبر واتساب، مع خيارات الدفع بفوري وفودافون كاش.' },
+    steps: { label: 'كيف يتم الحجز', title: 'أربع خطوات فقط. بدون حساب.', s1t: 'اختر طبيبك', s1d: 'تصفح استشاريينا واختر الأنسب لزيارتك.', s2t: 'احجز موعدًا', s2d: 'اختر التاريخ والوقت خلال ثوانٍ، بدون حساب.', s3t: 'ادفع العربون', s3d: 'أكّد الحجز بعربون بسيط عبر البطاقة أو فوري أو فودافون كاش.', s4t: 'تذكيرات عبر واتساب', s4d: 'سنرسل لك تذكيرًا قبل 48 و2 ساعة من الموعد.' },
+    cta: { title: 'جاهز لحجز زيارتك؟', subtitle: 'اختر استشاريك، وحدد الوقت المناسب، وأكّد حجزك بعربون بسيط. بدون حساب.', button: 'احجز موعدًا' },
+    footer: { tagline: 'تميّز في رعاية القلب والأوعية الدموية منذ 2009، نخدم القاهرة من مقرنا بمدينة نصر.', visitUs: 'زورونا', explore: 'استكشف', hours: 'مواعيد العمل', rights: 'مرخّصة من وزارة الصحة المصرية.', poweredBy: 'بدعم من كلينيكو' },
+    doctorsPage: { breadcrumb: 'الرئيسية', title: 'تصفح استشاريينا', subtitle: 'أطباء معتمدون لدى {clinic}. احجز استشارتك فورًا دون الحاجة لتسجيل.', searchLabel: 'بحث', searchPlaceholder: 'ابحث باسم الطبيب أو التخصص...', specialtyLabel: 'التخصص', allSpecialties: 'كل التخصصات', sortLabel: 'ترتيب حسب', sortRating: 'الأعلى تقييمًا', sortExperience: 'سنوات الخبرة', sortPriceAsc: 'السعر: من الأقل للأعلى', sortPriceDesc: 'السعر: من الأعلى للأقل', noResultsTitle: 'لا يوجد استشاريون مطابقون', noResultsSubtitle: 'جرّب إعادة ضبط عوامل التصفية.', clear: 'مسح عوامل التصفية', book: 'احجز' },
+    profile: { aboutPrefix: 'عن د.', education: 'المؤهلات والشهادات', timeline: 'المسيرة المهنية', reviews: 'آراء المرضى', bookingTitle: 'حجز موعد مباشر', bookingSubtitle: 'اختر التاريخ والوقت المناسبين. يُحجز موعدك مؤقتًا أثناء إتمام الدفع.', selectDate: '١. اختر التاريخ', selectTime: '٢. اختر الوقت', depositModel: 'نظام العربون', payOnline: 'ادفع الآن عبر الإنترنت', payClinic: 'يُدفع في العيادة', secureButton: 'تأكيد الموعد — المتابعة للدفع', guestNote: 'الحجز كضيف متاح · بدون تسجيل' },
+    reservation: { step1: 'بيانات المريض', step2: 'الدفع', step3: 'التأكيد', completeTitle: 'أكمل بيانات حجزك', fullName: 'اسم المريض بالكامل *', mobile: 'رقم الهاتف (+20) *', nationalId: 'الرقم القومي (اختياري، 14 رقمًا)', email: 'البريد الإلكتروني (اختياري)', visitPathway: 'نوع الزيارة', inPersonTitle: 'زيارة حضورية', inPersonDesc: 'تشخيص وجهًا لوجه في فرع مدينة نصر.', videoTitle: 'استشارة فيديو', videoDesc: 'رابط آمن يُرسل عبر واتساب.', notes: 'الأعراض / ملاحظات (اختياري)', notesPlaceholder: 'ضيق في الصدر، قائمة الأدوية، تفاصيل دعامة سابقة...', back: 'رجوع', proceed: 'المتابعة للدفع', overviewTitle: 'ملخص الحجز', date: 'التاريخ:', time: 'الوقت:', totalFee: 'إجمالي الرسوم:', depositNow: 'العربون الآن:' },
+    payment: { title: 'دفع العربون بأمان', tabCard: 'بطاقة', tabFawry: 'فوري', tabVodafone: 'فودافون كاش', tabClinic: 'في العيادة', cardholder: 'اسم حامل البطاقة', cardNumber: '4000 1234 5678 9010', fawryHint: 'ادفع هذا الكود في أي منفذ فوري أو عبر تطبيق FawryPay خلال 4 ساعات لتأكيد حجزك.', kioskLabel: 'كود الدفع بفوري', copyCode: 'نسخ الكود', copied: 'تم النسخ!', sendOtp: 'إرسال الرمز', otpPlaceholder: 'رمز مكوّن من 6 أرقام', clinicNote: 'بدون عربون — ادفع المبلغ كاملًا {price} عند الوصول للاستقبال.', back: 'رجوع', submitDefault: 'إتمام الدفع الآمن', submitClinic: 'تأكيد الحجز', summaryTitle: 'ملخص الدفع', depositNow: 'العربون الآن:' },
+    confirmation: { badge: 'تم تأكيد الحجز', title: 'تم تأكيد الموعد!', subtitle: 'تم إصدار إيصال إلكتروني لزيارتك.', refLabel: 'رقم المرجع', confirmed: 'مؤكد', patient: 'المريض:', physician: 'الطبيب:', date: 'التاريخ:', time: 'الوقت:', remaining: 'المتبقي في العيادة:', whatsapp: 'تم إرسال تأكيد عبر واتساب مع الاتجاهات إلى {phone}.', secureTitle: 'أمّن ملفك الطبي', passwordPlaceholder: 'أنشئ كلمة مرور للبوابة', activate: 'تفعيل', activated: 'تم تفعيل البوابة بنجاح!', backHome: 'العودة إلى {clinic}' },
+    login: { portalLabel: 'بوابة المريض الآمنة', unlockTitle: 'افتح ملفك الطبي الإلكتروني', benefit1: 'الوصول إلى التقارير التشخيصية والصور', benefit2: 'إيصالات ضريبية إلكترونية لكل زيارة', benefit3: 'متابعة الدور مباشرة يوم الزيارة', pdpl: 'بيانات مشفّرة وفقًا لقانون حماية البيانات المصري رقم 151 لسنة 2020.', signInTitle: 'تسجيل دخول بوابة المريض', signInSubtitle: 'سجّل الدخول برقم هاتفك المسجل.', phonePlaceholder: '+20 10 1234 5678', passwordPlaceholder: '••••••••', signIn: 'تسجيل الدخول للبوابة', noAccount: 'ليس لديك حساب؟', registerFree: 'سجّل مجانًا', skipGuest: '← تخطَّ إلى الحجز كضيف' },
+    register: { title: 'إنشاء ملف مريض', subtitle: 'تسجيل مجاني لدى {clinic}.', namePlaceholder: 'الاسم بالكامل (كما في البطاقة)', phonePlaceholder: '+20 10 1234 5678', emailPlaceholder: 'البريد الإلكتروني (اختياري)', passwordPlaceholder: 'أنشئ كلمة مرور', consent: 'أوافق على معالجة بياناتي وفقًا لقانون حماية البيانات المصري رقم 151 لسنة 2020.', button: 'تسجيل ملف المريض', already: 'لديك حساب بالفعل؟', signIn: 'تسجيل الدخول' } }
+};
+
+function interpolate(str, vars) {
+  if (!str) return str;
+  return str.replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m));
+}
+
+// ---------------------------------------------------------------------------
+// API LAYER (Axios) — seeded with static mock data for now. When the backend
+// is ready: `import axios from 'axios'` at the top of this module, uncomment
+// the axios line in each function below, and delete the seeded fallback.
+// ---------------------------------------------------------------------------
+const Api = {
+  async login(phone, password) {
+    // const { data } = await axios.post('/api/auth/login', { phone, password });
+    // return data;
+    await new Promise((r) => setTimeout(r, 350));
+    let name = 'Sherif El-Gendy';
+    if (phone.includes('10')) name = 'Maged Farouk'; else if (phone.includes('12')) name = 'Nadine Mansour';
+    return { name, phone, email: phone.replace(/\+/g, '') + '@clinical.eg', role: 'patient' };
+  },
+  async register({ name, phone, email }) {
+    // const { data } = await axios.post('/api/auth/register', { name, phone, email });
+    // return data;
+    await new Promise((r) => setTimeout(r, 350));
+    return { name, phone, email: email || phone.replace(/\+/g, '') + '@clinical.eg', role: 'patient' };
+  },
+  async createBooking(payload) {
+    // const { data } = await axios.post('/api/bookings', payload);
+    // return data;
+    await new Promise((r) => setTimeout(r, 450));
+    return { referenceNumber: `CHC-${Math.floor(1000 + Math.random() * 9000)}-EGP` };
+  }
+};
+
+// ---------------------------------------------------------------------------
+// VALIDATION (Zod pattern) — pure validators shaped like a real Zod schema
+// would enforce, e.g. z.object({ phone: z.string().min(8), ... }).
+// ---------------------------------------------------------------------------
+const Validate = {
+  login(phone, password) { if (!phone || !password) return { form: 'Please fill in all credentials' }; return {}; },
+  register({ name, phone, password, consent }) {
+    if (!name || !phone || !password) return { form: 'Please complete all required fields' };
+    if (!consent) return { form: 'You must accept the PDPL data processing consent' };
+    return {};
+  },
+  reservation({ name, phone, nationalId }) {
+    const errors = {};
+    if (!name.trim()) errors.name = 'Patient full name is required';
+    else if (name.trim().length < 5) errors.name = 'Please enter your full name as printed on national ID';
+    const cleaned = (phone || '').trim();
+    if (!cleaned) errors.phone = 'Egyptian mobile number is required';
+    else if (!/^(\+20|0)?1[0125]\d{8}$/.test(cleaned.replace(/\s+/g, ''))) errors.phone = 'Please enter a valid Egyptian phone number';
+    if (nationalId && !/^\d{14}$/.test(nationalId.trim())) errors.nationalId = 'Egyptian National ID must be exactly 14 digits';
+    return errors;
+  }
+};
+
+const THEMES = {
+  light: { bg: '#f7f5ef', surface: '#ffffff', border: '#eceada', border2: '#e2e0d3', ink: '#101a26', body: '#5b6b80', muted: '#8a93a3', navy: '#16324f', accentBg: '#e7f0ff', accentText: '#1d4ed8' },
+  dark: { bg: '#0b1220', surface: '#131b2c', border: '#22304a', border2: '#2a3a58', ink: '#eef2f8', body: '#b7c3d6', muted: '#7e8ba3', navy: '#3f6ea3', accentBg: '#16233d', accentText: '#8fb4ff' }
+};
+
+class Component extends DCLogic {
+  state = {
+    view: 'home',
+    theme: 'light', locale: 'en', dict: FALLBACK_I18N,
+    selectedDoctorId: 'doc-ahmed',
+    auth: { isLoggedIn: false, name: '', phone: '', email: '' },
+    selectedDateKey: 'today',
+    selectedTimeSlot: '05:30 PM',
+    searchQuery: '', specialtyFilter: 'all', sortBy: 'rating',
+    resName: '', resPhone: '', resEmail: '', resNationalId: '', visitType: 'in-person', doctorNotes: '', resErrors: {},
+    paymentMethod: 'card',
+    cardName: '', cardNumber: '', cardExpiry: '', cardCvv: '',
+    vfWallet: '', vfOtpSent: false, vfOtp: '',
+    fawryCopied: false,
+    referenceNumber: '',
+    ccPassword: '', accountCreated: false,
+    loginPhone: '', loginPassword: '', loginError: '',
+    regName: '', regPhone: '', regEmail: '', regPassword: '', regConsent: false, regError: '',
+    demoOpen: false
+  };
+
+  componentDidMount() {
+    // --- STATE MANAGEMENT (Zustand pattern) ---
+    // Target: src/store/authStore.ts using zustand + persist middleware.
+    // Here the same persisted shape is restored from localStorage directly.
+    try {
+      const savedAuth = JSON.parse(localStorage.getItem('chc_auth') || 'null');
+      if (savedAuth && savedAuth.isLoggedIn) this.setState({ auth: savedAuth });
+    } catch (e) {}
+
+    // Theme: explicit user choice wins; otherwise follow the device/OS setting.
+    try {
+      const savedTheme = localStorage.getItem('chc_theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        this.setState({ theme: savedTheme });
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        this.setState({ theme: 'dark' });
+      }
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const listener = (e) => { if (!localStorage.getItem('chc_theme')) this.setState({ theme: e.matches ? 'dark' : 'light' }); };
+        mq.addEventListener ? mq.addEventListener('change', listener) : mq.addListener(listener);
+      }
+    } catch (e) {}
+
+    // Locale: restore saved choice.
+    try {
+      const savedLocale = localStorage.getItem('chc_locale');
+      if (savedLocale === 'en' || savedLocale === 'ar') this.setState({ locale: savedLocale });
+    } catch (e) {}
+
+    // i18n data source: locales/en.json + locales/ar.json (falls back to the
+    // embedded FALLBACK_I18N above if the fetch is unavailable).
+    Promise.all([
+      fetch('./locales/en.json').then((r) => r.json()).catch(() => FALLBACK_I18N.en),
+      fetch('./locales/ar.json').then((r) => r.json()).catch(() => FALLBACK_I18N.ar)
+    ]).then(([en, ar]) => this.setState({ dict: { en, ar } })).catch(() => {});
+  }
+
+  navigate = (view) => { this.setState({ view }); window.scrollTo({ top: 0, behavior: 'instant' }); };
+  goHome = () => this.navigate('home');
+  goDoctors = () => this.navigate('doctors');
+  goProfile = () => this.navigate('profile');
+  goReservation = () => this.navigate('reservation');
+  goLogin = () => this.navigate('login');
+  goRegister = () => this.navigate('register');
+
+  scrollServices = () => { this.navigate('home'); setTimeout(() => document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' }), 80); };
+  scrollAbout = () => { this.navigate('home'); setTimeout(() => document.getElementById('about-clinic')?.scrollIntoView({ behavior: 'smooth' }), 80); };
+
+  selectDoctor = (id) => this.setState({ selectedDoctorId: id });
+  bookDoctor = (id) => { this.setState({ selectedDoctorId: id }); this.navigate('profile'); };
+
+  toggleDemo = () => this.setState((s) => ({ demoOpen: !s.demoOpen }));
+
+  toggleTheme = () => { const next = this.state.theme === 'light' ? 'dark' : 'light'; try { localStorage.setItem('chc_theme', next); } catch (e) {} this.setState({ theme: next }); };
+  toggleLocale = () => { const next = this.state.locale === 'en' ? 'ar' : 'en'; try { localStorage.setItem('chc_locale', next); } catch (e) {} this.setState({ locale: next }); };
+
+  persistAuth(auth) { try { localStorage.setItem('chc_auth', JSON.stringify(auth)); } catch (e) {} }
+  logout = () => { try { localStorage.removeItem('chc_auth'); } catch (e) {} this.setState({ auth: { isLoggedIn: false, name: '', phone: '', email: '' } }); };
+
+  onSearchChange = (e) => this.setState({ searchQuery: e.target.value });
+  onSpecialtyChange = (e) => this.setState({ specialtyFilter: e.target.value });
+  onSortChange = (e) => this.setState({ sortBy: e.target.value });
+  clearFilters = () => this.setState({ searchQuery: '', specialtyFilter: 'all', sortBy: 'rating' });
+
+  onResNameChange = (e) => this.setState({ resName: e.target.value, resErrors: { ...this.state.resErrors, name: undefined } });
+  onResPhoneChange = (e) => this.setState({ resPhone: e.target.value, resErrors: { ...this.state.resErrors, phone: undefined } });
+  onResNationalIdChange = (e) => this.setState({ resNationalId: e.target.value, resErrors: { ...this.state.resErrors, nationalId: undefined } });
+  onResEmailChange = (e) => this.setState({ resEmail: e.target.value });
+  onDoctorNotesChange = (e) => this.setState({ doctorNotes: e.target.value });
+  selectInPerson = () => this.setState({ visitType: 'in-person' });
+  selectVideo = () => this.setState({ visitType: 'video' });
+
+  handleReservationSubmit = (e) => {
+    e.preventDefault();
+    const errors = Validate.reservation({ name: this.state.resName, phone: this.state.resPhone, nationalId: this.state.resNationalId });
+    if (Object.keys(errors).length) { this.setState({ resErrors: errors }); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    this.setState({ resErrors: {} });
+    this.navigate('payment');
+  };
+
+  selectCard = () => this.setState({ paymentMethod: 'card' });
+  selectFawry = () => this.setState({ paymentMethod: 'fawry' });
+  selectVodafone = () => this.setState({ paymentMethod: 'vodafone' });
+  selectClinic = () => this.setState({ paymentMethod: 'clinic' });
+  onCardNameChange = (e) => this.setState({ cardName: e.target.value });
+  onCardNumberChange = (e) => this.setState({ cardNumber: e.target.value });
+  onCardExpiryChange = (e) => this.setState({ cardExpiry: e.target.value });
+  onCardCvvChange = (e) => this.setState({ cardCvv: e.target.value });
+  onVfWalletChange = (e) => this.setState({ vfWallet: e.target.value });
+  onVfOtpChange = (e) => this.setState({ vfOtp: e.target.value });
+  handleSendVfOtp = () => this.setState({ vfOtpSent: true });
+  handleCopyFawryCode = () => { try { navigator.clipboard.writeText('918362754'); } catch (e) {} this.setState({ fawryCopied: true }); setTimeout(() => this.setState({ fawryCopied: false }), 2000); };
+
+  handlePaymentSubmit = (e) => {
+    e.preventDefault();
+    Api.createBooking({
+      doctorId: this.state.selectedDoctorId, date: this.state.selectedDateKey, timeSlot: this.state.selectedTimeSlot,
+      patientName: this.state.resName, patientPhone: this.state.resPhone, paymentMethod: this.state.paymentMethod
+    }).then(({ referenceNumber }) => { this.setState({ referenceNumber }); this.navigate('confirmation'); });
+  };
+
+  onCcPasswordChange = (e) => this.setState({ ccPassword: e.target.value });
+  handleCreateAccountFromConfirmation = (e) => {
+    e.preventDefault();
+    if (!this.state.ccPassword.trim()) return;
+    const auth = { isLoggedIn: true, name: this.state.resName || 'Valued Patient', phone: this.state.resPhone || '+20 10 9988 7766', email: this.state.resEmail || 'patient@clinical.eg', role: 'patient' };
+    this.persistAuth(auth);
+    this.setState({ auth, accountCreated: true });
+  };
+
+  onLoginPhoneChange = (e) => this.setState({ loginPhone: e.target.value });
+  onLoginPasswordChange = (e) => this.setState({ loginPassword: e.target.value });
+  handleLoginSubmit = (e) => {
+    e.preventDefault();
+    const errors = Validate.login(this.state.loginPhone, this.state.loginPassword);
+    if (errors.form) { this.setState({ loginError: errors.form }); return; }
+    Api.login(this.state.loginPhone, this.state.loginPassword).then((user) => {
+      const auth = { isLoggedIn: true, ...user };
+      this.persistAuth(auth);
+      this.setState({ auth, loginError: '', resName: user.name, resPhone: user.phone, resEmail: user.email });
+      this.navigate('home');
+    });
+  };
+
+  onRegNameChange = (e) => this.setState({ regName: e.target.value });
+  onRegPhoneChange = (e) => this.setState({ regPhone: e.target.value });
+  onRegEmailChange = (e) => this.setState({ regEmail: e.target.value });
+  onRegPasswordChange = (e) => this.setState({ regPassword: e.target.value });
+  onRegConsentChange = (e) => this.setState({ regConsent: e.target.checked });
+  handleRegisterSubmit = (e) => {
+    e.preventDefault();
+    const errors = Validate.register({ name: this.state.regName, phone: this.state.regPhone, password: this.state.regPassword, consent: this.state.regConsent });
+    if (errors.form) { this.setState({ regError: errors.form }); return; }
+    Api.register({ name: this.state.regName, phone: this.state.regPhone, email: this.state.regEmail }).then((user) => {
+      const auth = { isLoggedIn: true, ...user };
+      this.persistAuth(auth);
+      this.setState({ auth, regError: '', resName: user.name, resPhone: user.phone, resEmail: user.email });
+      this.navigate('home');
+    });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const dict = s.dict[s.locale] || FALLBACK_I18N[s.locale] || FALLBACK_I18N.en;
+    const doctor = MOCK_DOCTORS.find((d) => d.id === s.selectedDoctorId) || MOCK_DOCTORS[0];
+    const selectedDateObj = AVAILABLE_DATES.find((d) => d.key === s.selectedDateKey) || AVAILABLE_DATES[0];
+    const isRtl = s.locale === 'ar';
+    const p = THEMES[s.theme];
+
+    const themeVars = `--chc-bg:${p.bg};--chc-surface:${p.surface};--chc-border:${p.border};--chc-border2:${p.border2};--chc-ink:${p.ink};--chc-body:${p.body};--chc-muted:${p.muted};--chc-navy:${p.navy};--chc-accentBg:${p.accentBg};--chc-accentText:${p.accentText};--chc-serif:${isRtl ? "'Cairo',serif" : "'Lora',serif"};--chc-sans:${isRtl ? "'Cairo',sans-serif" : "'Inter',sans-serif"};color-scheme:${s.theme};`;
+
+    const navActive = 'padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;background:var(--chc-accentBg);border:none;cursor:pointer;color:var(--chc-navy)';
+    const navInactive = 'padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;background:none;border:none;cursor:pointer;color:var(--chc-body)';
+
+    const availStyleGreen = 'background:#ecfdf5;color:#059669';
+    const availStyleBlue = 'background:var(--chc-accentBg);color:var(--chc-accentText)';
+    const availLabel = { today: 'Available Today', tomorrow: 'Next: Tomorrow', monday: 'Next: Monday' };
+
+    const doctorsWithUi = MOCK_DOCTORS.map((d) => ({
+      ...d,
+      priceLabel: `EGP ${d.price}`, depositLabel: `EGP ${d.deposit}`, remainingLabel: `EGP ${d.price - d.deposit}`,
+      bioShort: d.bio.length > 130 ? d.bio.slice(0, 130) + '…' : d.bio,
+      lastName: d.name.split(' ').slice(-1)[0],
+      availLabel: availLabel[d.nextAvailable] || 'Available',
+      availStyle: d.nextAvailable === 'today' ? availStyleGreen : availStyleBlue,
+      select: () => this.selectDoctor(d.id),
+      book: () => this.bookDoctor(d.id)
+    }));
+
+    let filtered = doctorsWithUi.filter((d) => {
+      const q = s.searchQuery.toLowerCase();
+      const matchesSearch = !q || d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q) || d.title.toLowerCase().includes(q);
+      const matchesSpecialty = s.specialtyFilter === 'all' ||
+        (s.specialtyFilter === 'cardiology' && d.specialty.includes('Cardiology') && !d.specialty.includes('Interventional')) ||
+        (s.specialtyFilter === 'interventional' && d.specialty.includes('Interventional')) ||
+        (s.specialtyFilter === 'internal' && d.specialty.includes('Internal'));
+      return matchesSearch && matchesSpecialty;
+    });
+    filtered = filtered.sort((a, b) => {
+      if (s.sortBy === 'rating') return b.rating - a.rating;
+      if (s.sortBy === 'price-asc') return a.price - b.price;
+      if (s.sortBy === 'price-desc') return b.price - a.price;
+      if (s.sortBy === 'experience') return b.experienceYears - a.experienceYears;
+      return 0;
+    });
+
+    const dateChipStyle = (key) => key === s.selectedDateKey
+      ? 'flex-shrink:0;width:52px;padding:9px 2px;border-radius:12px;border:none;background:var(--chc-navy);color:white;text-align:center;cursor:pointer'
+      : 'flex-shrink:0;width:52px;padding:9px 2px;border-radius:12px;border:1px solid var(--chc-border2);background:var(--chc-bg);color:var(--chc-body);text-align:center;cursor:pointer';
+    const slotStyle = (slot) => slot === s.selectedTimeSlot
+      ? 'padding:9px 4px;border-radius:10px;border:none;background:#0d2338;color:white;font-size:12px;font-family:JetBrains Mono,monospace;font-weight:600;cursor:pointer'
+      : 'padding:9px 4px;border-radius:10px;border:1px solid var(--chc-border2);background:var(--chc-surface);color:var(--chc-body);font-size:12px;font-family:JetBrains Mono,monospace;font-weight:600;cursor:pointer';
+
+    const visitCardStyle = (type) => type === s.visitType
+      ? 'padding:14px;border-radius:12px;border:1.5px solid var(--chc-navy);background:var(--chc-accentBg);text-align:start;cursor:pointer'
+      : 'padding:14px;border-radius:12px;border:1px solid var(--chc-border2);background:var(--chc-bg);text-align:start;cursor:pointer';
+
+    const tabStyle = (m) => m === s.paymentMethod
+      ? 'padding:12px 4px;border-radius:12px;border:1.5px solid var(--chc-navy);background:var(--chc-accentBg);color:var(--chc-navy);font-size:12px;font-weight:700;cursor:pointer'
+      : 'padding:12px 4px;border-radius:12px;border:1px solid var(--chc-border2);background:var(--chc-bg);color:var(--chc-body);font-size:12px;font-weight:600;cursor:pointer';
+
+    const demoScreens = DEMO_SCREENS.map((sc) => ({
+      key: sc.key, label: sc.label,
+      go: () => this.setState({ view: sc.key, demoOpen: false }),
+      style: sc.key === s.view
+        ? 'width:100%;text-align:start;padding:9px 12px;border-radius:10px;border:none;background:var(--chc-navy);color:white;font-size:11.5px;font-weight:600;cursor:pointer;margin-bottom:2px'
+        : 'width:100%;text-align:start;padding:9px 12px;border-radius:10px;border:none;background:none;color:#c3d0e0;font-size:11.5px;cursor:pointer;margin-bottom:2px'
+    }));
+
+    const doctorUi = { ...doctor, priceLabel: `EGP ${doctor.price}`, depositLabel: `EGP ${doctor.deposit}`, remainingLabel: `EGP ${doctor.price - doctor.deposit}`, lastName: doctor.name.split(' ').slice(-1)[0] };
+
+    return {
+      dir: isRtl ? 'rtl' : 'ltr', themeVars,
+      themeIcon: s.theme === 'dark' ? '☀' : '🌙', localeToggleLabel: s.locale === 'en' ? 'العربية' : 'English',
+      toggleTheme: this.toggleTheme, toggleLocale: this.toggleLocale,
+      t: dict,
+
+      clinicName: CLINIC.name, clinicTagline: CLINIC.tagline, clinicPhone: CLINIC.phone, clinicAddress: CLINIC.address,
+      clinicHours: CLINIC.hours, clinicPatientsCount: CLINIC.patientsCount, clinicDoctorsCount: CLINIC.doctorsCount, clinicRating: CLINIC.rating,
+
+      heroSubtitle: interpolate(dict.hero.subtitle, { clinic: CLINIC.name }),
+      aboutP1: interpolate(dict.about.p1, { clinic: CLINIC.name }),
+      aboutP2: interpolate(dict.about.p2, { doctors: CLINIC.doctorsCount, patients: CLINIC.patientsCount }),
+      doctorsPageSubtitle: interpolate(dict.doctorsPage.subtitle, { clinic: CLINIC.name }),
+      registerSubtitle: interpolate(dict.register.subtitle, { clinic: CLINIC.name }),
+      clinicNoteText: interpolate(dict.payment.clinicNote, { price: `EGP ${doctor.price}` }),
+      whatsappText: interpolate(dict.confirmation.whatsapp, { phone: s.resPhone || CLINIC.phone }),
+      backHomeText: interpolate(dict.confirmation.backHome, { clinic: CLINIC.name }),
+
+      isHome: s.view === 'home', isDoctors: s.view === 'doctors', isProfile: s.view === 'profile',
+      isReservation: s.view === 'reservation', isPayment: s.view === 'payment', isConfirmation: s.view === 'confirmation',
+      isLogin: s.view === 'login', isRegister: s.view === 'register',
+
+      navHomeStyle: s.view === 'home' ? navActive : navInactive,
+      navDoctorsStyle: (s.view === 'doctors' || s.view === 'profile') ? navActive : navInactive,
+
+      goHome: this.goHome, goDoctors: this.goDoctors, goProfile: this.goProfile, goReservation: this.goReservation,
+      goLogin: this.goLogin, goRegister: this.goRegister, scrollServices: this.scrollServices, scrollAbout: this.scrollAbout,
+      logout: this.logout,
+
+      auth: { isLoggedIn: s.auth.isLoggedIn, isLoggedOut: !s.auth.isLoggedIn, name: s.auth.name, initial: (s.auth.name || 'P').charAt(0).toUpperCase() },
+
+      services: MOCK_SERVICES,
+      doctors: doctorsWithUi.slice(0, 4),
+      aboutCards: [
+        { title: dict.about.excellenceTitle, text: dict.about.excellenceText },
+        { title: dict.about.transparencyTitle, text: dict.about.transparencyText },
+        { title: dict.about.continuityTitle, text: dict.about.continuityText },
+        { title: dict.about.accessibilityTitle, text: dict.about.accessibilityText }
+      ],
+      bookingSteps: [
+        { num: '01', title: dict.steps.s1t, desc: dict.steps.s1d },
+        { num: '02', title: dict.steps.s2t, desc: dict.steps.s2d },
+        { num: '03', title: dict.steps.s3t, desc: dict.steps.s3d },
+        { num: '04', title: dict.steps.s4t, desc: dict.steps.s4d }
+      ],
+
+      searchQuery: s.searchQuery, specialtyFilter: s.specialtyFilter, sortBy: s.sortBy,
+      onSearchChange: this.onSearchChange, onSpecialtyChange: this.onSpecialtyChange, onSortChange: this.onSortChange, clearFilters: this.clearFilters,
+      filteredDoctors: filtered, hasFilteredDoctors: filtered.length > 0, hasNoFilteredDoctors: filtered.length === 0,
+
+      doctor: doctorUi, reviews: MOCK_REVIEWS,
+
+      availableDates: AVAILABLE_DATES.map((d) => ({ key: d.key, dayName: d.dayName, dayNum: d.dayNum, select: () => this.setState({ selectedDateKey: d.key }), style: dateChipStyle(d.key) })),
+      timeSlots: TIME_SLOTS.map((slot) => ({ label: slot, select: () => this.setState({ selectedTimeSlot: slot }), style: slotStyle(slot) })),
+      handleBookingStart: () => { this.setState({}); this.navigate('reservation'); },
+
+      selectedDate: selectedDateObj.full, selectedTimeSlot: s.selectedTimeSlot,
+
+      resName: s.resName, resPhone: s.resPhone, resEmail: s.resEmail, resNationalId: s.resNationalId, doctorNotes: s.doctorNotes, resErrors: s.resErrors,
+      onResNameChange: this.onResNameChange, onResPhoneChange: this.onResPhoneChange, onResNationalIdChange: this.onResNationalIdChange,
+      onResEmailChange: this.onResEmailChange, onDoctorNotesChange: this.onDoctorNotesChange,
+      selectInPerson: this.selectInPerson, selectVideo: this.selectVideo,
+      inPersonStyle: visitCardStyle('in-person'), videoStyle: visitCardStyle('video'),
+      handleReservationSubmit: this.handleReservationSubmit,
+
+      paymentMethod: s.paymentMethod, isCardMethod: s.paymentMethod === 'card', isFawryMethod: s.paymentMethod === 'fawry', isVodafoneMethod: s.paymentMethod === 'vodafone', isClinicMethod: s.paymentMethod === 'clinic',
+      selectCard: this.selectCard, selectFawry: this.selectFawry, selectVodafone: this.selectVodafone, selectClinic: this.selectClinic,
+      cardTabStyle: tabStyle('card'), fawryTabStyle: tabStyle('fawry'), vodafoneTabStyle: tabStyle('vodafone'), clinicTabStyle: tabStyle('clinic'),
+      cardName: s.cardName, cardNumber: s.cardNumber, cardExpiry: s.cardExpiry, cardCvv: s.cardCvv,
+      onCardNameChange: this.onCardNameChange, onCardNumberChange: this.onCardNumberChange, onCardExpiryChange: this.onCardExpiryChange, onCardCvvChange: this.onCardCvvChange,
+      fawryBillCode: '918 362 754', fawryCopyLabel: s.fawryCopied ? dict.payment.copied : dict.payment.copyCode, handleCopyFawryCode: this.handleCopyFawryCode,
+      vfWallet: s.vfWallet, vfOtp: s.vfOtp, vfOtpSent: s.vfOtpSent, vfOtpNotSent: !s.vfOtpSent, onVfWalletChange: this.onVfWalletChange, onVfOtpChange: this.onVfOtpChange, handleSendVfOtp: this.handleSendVfOtp,
+      paymentSubmitLabel: s.paymentMethod === 'clinic' ? dict.payment.submitClinic : dict.payment.submitDefault,
+      depositNowLabel: s.paymentMethod === 'clinic' ? 'EGP 0' : `EGP ${doctor.deposit}`,
+      handlePaymentSubmit: this.handlePaymentSubmit, goReservation: this.goReservation,
+
+      referenceNumber: s.referenceNumber, remainingAtClinicLabel: s.paymentMethod === 'clinic' ? `EGP ${doctor.price}` : `EGP ${doctor.price - doctor.deposit}`,
+      ccPassword: s.ccPassword, accountCreated: s.accountCreated, isAccountNotCreated: !s.accountCreated,
+      onCcPasswordChange: this.onCcPasswordChange, handleCreateAccountFromConfirmation: this.handleCreateAccountFromConfirmation,
+
+      loginPhone: s.loginPhone, loginPassword: s.loginPassword, loginError: s.loginError,
+      onLoginPhoneChange: this.onLoginPhoneChange, onLoginPasswordChange: this.onLoginPasswordChange, handleLoginSubmit: this.handleLoginSubmit,
+
+      regName: s.regName, regPhone: s.regPhone, regEmail: s.regEmail, regPassword: s.regPassword, regConsent: s.regConsent, regError: s.regError,
+      onRegNameChange: this.onRegNameChange, onRegPhoneChange: this.onRegPhoneChange, onRegEmailChange: this.onRegEmailChange,
+      onRegPasswordChange: this.onRegPasswordChange, onRegConsentChange: this.onRegConsentChange, handleRegisterSubmit: this.handleRegisterSubmit,
+
+      demoOpen: s.demoOpen, demoClosed: !s.demoOpen, toggleDemo: this.toggleDemo, demoScreens
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-brand-cream dark:bg-brand-bgDark text-brand-ink dark:text-brand-inkDark transition-colors duration-200; }
+  a { @apply text-brand-accent dark:text-brand-accentDark hover:text-brand-navy dark:hover:text-white; }
+}
+
+@keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes gentle-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.animate-fade-in { animation: fade-in .35s ease; }
+.animate-gentle-bounce { animation: gentle-bounce 1.6s infinite; }
