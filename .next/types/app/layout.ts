@@ -1,4 +1,4 @@
-// File: C:\Users\moham\Downloads\Healthcare platform UI redesign (1)\app\layout.tsx
+// File: D:\Project\Healthcare platform\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
