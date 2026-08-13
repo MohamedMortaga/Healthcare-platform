@@ -6,7 +6,7 @@ import ImagePlaceholder from '@/components/atoms/ImagePlaceholder';
 import BookingWidget from '@/components/organisms/BookingWidget';
 
 export default function DoctorProfileView() {
-  const { ta } = useT();
+  const { t } = useT();
   const { selectedDoctorId, navigate } = useUiStore();
   const doctor = MOCK_DOCTORS.find((d) => d.id === selectedDoctorId) ?? MOCK_DOCTORS[0];
   const lastName = doctor.name.split(' ').slice(-1)[0];
