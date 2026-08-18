@@ -1,0 +1,473 @@
+openapi: 3.0.3
+info:
+  title: External Smart Clinic System API
+  version: "1.0"
+  description: API contract for the Smart Clinic Web API.
+servers:
+  - url: https://localhost:62419
+    description: Local HTTPS
+  - url: http://localhost:57138
+    description: Local Docker HTTP
+tags:
+  - name: Patient Authentication
+  - name: Doctors
+paths:
+  /api/auth/patients/register:
+    post:
+      tags:
+        - Patient Authentication
+      summary: Register a patient
+      description: Creates a patient Identity user and patient profile, then returns a JWT access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPatientRequest"
+            example:
+              fullName: Ahmed Mohamed
+              phoneNumber: "01012345678"
+              email: ahmed@example.com
+              password: Password@123
+      responses:
+        "201":
+          description: Patient registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthOperationResult"
+        "400":
+          description: Invalid registration data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+        "409":
+          description: Phone number or email already exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+        "423":
+          description: Registration for this phone number is already being processed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+  /api/auth/patients/login:
+    post:
+      tags:
+        - Patient Authentication
+      summary: Login a patient
+      description: Authenticates a patient using phone number and password, then returns a JWT access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginPatientRequest"
+            example:
+              phoneNumber: "01012345678"
+              password: Password@123
+      responses:
+        "200":
+          description: Patient logged in successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthOperationResult"
+        "400":
+          description: Invalid login data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+        "401":
+          description: Invalid phone number or password.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+  /api/auth/patients/logout:
+    post:
+      tags:
+        - Patient Authentication
+      summary: Logout current patient
+      description: Revokes the current JWT by storing its token id in Redis until the token expiry.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Token revoked successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyOperationResult"
+        "401":
+          description: Missing, invalid, expired, or already revoked token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+  /api/doctors:
+    get:
+      tags:
+        - Doctors
+      summary: List doctors
+      description: Returns paginated doctor cards for the doctors listing UI.
+      parameters:
+        - name: pageNumber
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+        - name: search
+          in: query
+          required: false
+          description: Searches doctor name, specialty, and professional title.
+          schema:
+            type: string
+            nullable: true
+        - name: specialty
+          in: query
+          required: false
+          schema:
+            type: string
+            nullable: true
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/DoctorSortBy"
+      responses:
+        "200":
+          description: Paginated doctor cards.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorCardPagedOperationResult"
+  /api/doctors/{doctorProfileId}:
+    get:
+      tags:
+        - Doctors
+      summary: Get doctor profile details
+      description: Returns the full doctor profile. Authentication is required.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: doctorProfileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Doctor profile details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorProfileOperationResult"
+        "401":
+          description: Missing, invalid, expired, or revoked token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+        "404":
+          description: Doctor profile was not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorOperationResult"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterPatientRequest:
+      type: object
+      required:
+        - fullName
+        - phoneNumber
+        - password
+      properties:
+        fullName:
+          type: string
+          example: Ahmed Mohamed
+        phoneNumber:
+          type: string
+          example: "01012345678"
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: ahmed@example.com
+        password:
+          type: string
+          format: password
+          example: Password@123
+    LoginPatientRequest:
+      type: object
+      required:
+        - phoneNumber
+        - password
+      properties:
+        phoneNumber:
+          type: string
+          example: "01012345678"
+        password:
+          type: string
+          format: password
+          example: Password@123
+    AuthResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        patientProfileId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        phoneNumber:
+          type: string
+        email:
+          type: string
+          nullable: true
+        accessToken:
+          type: string
+        expiresAtUtc:
+          type: string
+          format: date-time
+    DoctorSortBy:
+      type: string
+      enum:
+        - HighestRating
+        - YearsOfExperience
+        - PriceLowToHigh
+        - PriceHighToLow
+      default: HighestRating
+    DoctorCardResponse:
+      type: object
+      properties:
+        doctorProfileId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        specialty:
+          type: string
+        professionalTitle:
+          type: string
+          nullable: true
+        subSpecialty:
+          type: string
+          nullable: true
+        profileImageUrl:
+          type: string
+          nullable: true
+        consultationFee:
+          type: number
+          format: decimal
+          nullable: true
+        isAvailable:
+          type: boolean
+        availabilityLabel:
+          type: string
+          example: Available today
+        yearsOfExperience:
+          type: integer
+        patientsServed:
+          type: integer
+        averageRating:
+          type: number
+          format: decimal
+        reviewsCount:
+          type: integer
+    PagedDoctorCards:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DoctorCardResponse"
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+        totalPages:
+          type: integer
+    DoctorProfileDetailsResponse:
+      type: object
+      properties:
+        doctorProfileId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        specialty:
+          type: string
+        professionalTitle:
+          type: string
+          nullable: true
+        subSpecialty:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        profileImageUrl:
+          type: string
+          nullable: true
+        yearsOfExperience:
+          type: integer
+        patientsServed:
+          type: integer
+        averageRating:
+          type: number
+          format: decimal
+        reviewsCount:
+          type: integer
+        consultationFee:
+          type: number
+          format: decimal
+          nullable: true
+        isAvailable:
+          type: boolean
+        educations:
+          type: array
+          items:
+            $ref: "#/components/schemas/DoctorEducationResponse"
+        workExperiences:
+          type: array
+          items:
+            $ref: "#/components/schemas/DoctorWorkExperienceResponse"
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/DoctorReviewResponse"
+    DoctorEducationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        institution:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        issuedAt:
+          type: string
+          format: date
+          nullable: true
+        sortOrder:
+          type: integer
+    DoctorWorkExperienceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        position:
+          type: string
+        organization:
+          type: string
+        startYear:
+          type: integer
+        endYear:
+          type: integer
+          nullable: true
+        isCurrent:
+          type: boolean
+        description:
+          type: string
+          nullable: true
+        sortOrder:
+          type: integer
+    DoctorReviewResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reviewerName:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        reviewedAt:
+          type: string
+          format: date
+    AuthOperationResult:
+      allOf:
+        - $ref: "#/components/schemas/OperationResultBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/AuthResponse"
+    DoctorCardPagedOperationResult:
+      allOf:
+        - $ref: "#/components/schemas/OperationResultBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/PagedDoctorCards"
+    DoctorProfileOperationResult:
+      allOf:
+        - $ref: "#/components/schemas/OperationResultBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/DoctorProfileDetailsResponse"
+    EmptyOperationResult:
+      allOf:
+        - $ref: "#/components/schemas/OperationResultBase"
+        - type: object
+          properties:
+            data:
+              nullable: true
+    ErrorOperationResult:
+      allOf:
+        - $ref: "#/components/schemas/OperationResultBase"
+        - type: object
+          properties:
+            data:
+              nullable: true
+    OperationResultBase:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 200
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: The operation was successful
+        messageLocalized:
+          type: string
+          example: The operation was successful
