@@ -34,7 +34,7 @@ export const useUiStore = create<UiState>()(
       selectedDateKey: 'today',
       selectedTimeSlot: '05:30 PM',
       demoOpen: false,
-      setTheme: (t, explicit = false) => set({ theme: t, themeIsExplicit: explicit || undefined ? explicit : false }),
+      setTheme: (t, explicit = false) => set({ theme: t, themeIsExplicit: explicit }),
       toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light', themeIsExplicit: true })),
       toggleLocale: () => set((s) => ({ locale: s.locale === 'en' ? 'ar' : 'en' })),
       navigate: (v) => set({ view: v }),

@@ -17,7 +17,7 @@ export default function ReservationFormView() {
   const { user } = useAuthStore();
   const b = useBookingStore();
   const doctor = MOCK_DOCTORS.find((d) => d.id === selectedDoctorId) ?? MOCK_DOCTORS[0];
-  const dateFull = ['today', 'tomorrow', 'tue', 'wed', 'thu'].includes(selectedDateKey) ? selectedDateKey : selectedDateKey;
+  const dateFull = selectedDateKey;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
