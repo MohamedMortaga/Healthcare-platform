@@ -7,7 +7,7 @@ interface AuthState {
   user: AuthUser | null;
   isLoggedIn: boolean;
   login: (phone: string, password: string) => Promise<AuthUser>;
-  register: (input: { name: string; phone: string; email?: string }) => Promise<AuthUser>;
+  register: (input: { name: string; phone: string; email?: string; password: string }) => Promise<AuthUser>;
   setUser: (user: AuthUser) => void;
   logout: () => void;
 }

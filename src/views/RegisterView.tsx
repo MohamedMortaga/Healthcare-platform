@@ -29,7 +29,7 @@ export default function RegisterView() {
       setError(result.error.issues[0]?.message ?? 'Please complete all required fields');
       return;
     }
-    const user = await register({ name, phone, email });
+    const user = await register({ name, phone, email, password });
     prefill(user.name, user.phone, user.email);
     setError('');
     navigate('home');

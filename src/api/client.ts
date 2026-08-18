@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// Central Axios instance. Point VITE-style env var at the real backend once
-// it exists; every api/*.ts module below imports `apiClient` instead of
-// calling axios directly so auth headers / base URL only live in one place.
+const apiRoot = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:57138').replace(/\/$/, '');
+
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
-  timeout: 10000,
+  baseURL: apiRoot,
+  timeout: 15000,
   headers: { 'Content-Type': 'application/json' }
 });
 

@@ -757,30 +757,59 @@ function interpolate(str, vars) {
 // the axios line in each function below, and delete the seeded fallback.
 // ---------------------------------------------------------------------------
 const Api = {
-  async login(phone, password) {
-    // Real production behavior should reject unregistered credentials.
-    // Demo auth can be enabled only explicitly behind a demo flag.
-    if (!window.__DEMO_AUTH__) {
-      throw new Error('This account is not registered.');
-    }
-    const demoUsers = {
-      '+201000000000': { name: 'Demo Patient', phone: '+201000000000', email: 'demo@clinical.eg', role: 'patient' }
-    };
-    const user = demoUsers[phone.trim()];
-    if (!user) throw new Error('This account is not registered.');
-    return user;
+  getApiRoot() {
+    return (window.__API_URL__ || 'http://localhost:57138').replace(/\/$/, '');
   },
-  async register({ name, phone, email }) {
-    // const { data } = await axios.post('/api/auth/register', { name, phone, email });
-    // return data;
-    await new Promise((r) => setTimeout(r, 350));
-    return { name, phone, email: email || phone.replace(/\+/g, '') + '@clinical.eg', role: 'patient' };
+  async login(phone, password) {
+    const root = this.getApiRoot();
+    const response = await fetch(`${root}/api/auth/patients/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phoneNumber: String(phone).trim(), password: String(password).trim() })
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.message || 'This account is not registered.');
+    }
+    const data = await response.json();
+    return {
+      name: data?.fullName ?? data?.name ?? 'Patient',
+      phone: data?.phoneNumber ?? data?.phone ?? '',
+      email: data?.email ?? '',
+      role: 'patient'
+    };
+  },
+  async register({ name, phone, email, password }) {
+    const root = this.getApiRoot();
+    const response = await fetch(`${root}/api/auth/patients/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName: name, phoneNumber: phone, email: email || undefined, password })
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.message || 'Registration failed.');
+    }
+    const data = await response.json();
+    return {
+      name: data?.fullName ?? data?.name ?? name,
+      phone: data?.phoneNumber ?? data?.phone ?? phone,
+      email: data?.email ?? email ?? '',
+      role: 'patient'
+    };
   },
   async createBooking(payload) {
-    // const { data } = await axios.post('/api/bookings', payload);
-    // return data;
-    await new Promise((r) => setTimeout(r, 450));
-    return { referenceNumber: `CHC-${Math.floor(1000 + Math.random() * 9000)}-EGP` };
+    const root = this.getApiRoot();
+    const response = await fetch(`${root}/api/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.message || 'Booking failed.');
+    }
+    return await response.json();
   }
 };
 
