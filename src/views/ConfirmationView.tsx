@@ -1,10 +1,13 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import { useBookingStore } from '@/store/bookingStore';
 import { useT } from '@/hooks/useT';
 import { interpolate } from '@/i18n';
-import { CLINIC, MOCK_DOCTORS } from '@/data/mockData';
+import { fetchDoctors } from '@/api/clinicApi';
+import { CLINIC } from '@/data/mockData';
+import { Doctor } from '@/types';
 import Input from '@/components/atoms/Input';
 import Button from '@/components/atoms/Button';
 
@@ -13,7 +16,15 @@ export default function ConfirmationView() {
   const { selectedDoctorId, selectedDateKey, selectedTimeSlot, navigate } = useUiStore();
   const { setUser } = useAuthStore();
   const b = useBookingStore();
-  const doctor = MOCK_DOCTORS.find((d) => d.id === selectedDoctorId) ?? MOCK_DOCTORS[0];
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
+
+  useEffect(() => {
+    fetchDoctors().then((doctors) => {
+      setDoctor(doctors.find((d) => d.id === selectedDoctorId) ?? doctors[0] ?? null);
+    }).catch(() => setDoctor(null));
+  }, [selectedDoctorId]);
+
+  if (!doctor) return null;
   const remaining = b.paymentMethod === 'clinic' ? doctor.price : doctor.price - doctor.deposit;
 
   const activate = (e: React.FormEvent) => {

@@ -758,12 +758,17 @@ function interpolate(str, vars) {
 // ---------------------------------------------------------------------------
 const Api = {
   async login(phone, password) {
-    // const { data } = await axios.post('/api/auth/login', { phone, password });
-    // return data;
-    await new Promise((r) => setTimeout(r, 350));
-    let name = 'Sherif El-Gendy';
-    if (phone.includes('10')) name = 'Maged Farouk'; else if (phone.includes('12')) name = 'Nadine Mansour';
-    return { name, phone, email: phone.replace(/\+/g, '') + '@clinical.eg', role: 'patient' };
+    // Real production behavior should reject unregistered credentials.
+    // Demo auth can be enabled only explicitly behind a demo flag.
+    if (!window.__DEMO_AUTH__) {
+      throw new Error('This account is not registered.');
+    }
+    const demoUsers = {
+      '+201000000000': { name: 'Demo Patient', phone: '+201000000000', email: 'demo@clinical.eg', role: 'patient' }
+    };
+    const user = demoUsers[phone.trim()];
+    if (!user) throw new Error('This account is not registered.');
+    return user;
   },
   async register({ name, phone, email }) {
     // const { data } = await axios.post('/api/auth/register', { name, phone, email });

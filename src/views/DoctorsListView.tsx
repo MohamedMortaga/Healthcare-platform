@@ -1,8 +1,9 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useT } from '@/hooks/useT';
-import { MOCK_DOCTORS } from '@/data/mockData';
+import { fetchDoctors } from '@/api/clinicApi';
+import { Doctor } from '@/types';
 import DoctorListItem from '@/components/molecules/DoctorListItem';
 import Button from '@/components/atoms/Button';
 
@@ -15,10 +16,15 @@ export default function DoctorsListView() {
   const [search, setSearch] = useState('');
   const [specialty, setSpecialty] = useState<SpecialtyFilter>('all');
   const [sortBy, setSortBy] = useState<SortBy>('rating');
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+
+  useEffect(() => {
+    fetchDoctors().then(setDoctors).catch(() => setDoctors([]));
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    let list = MOCK_DOCTORS.filter((d) => {
+    let list = doctors.filter((d) => {
       const matchesSearch = !q || d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q) || d.title.toLowerCase().includes(q);
       const matchesSpecialty =
         specialty === 'all' ||
@@ -34,7 +40,7 @@ export default function DoctorsListView() {
       return b.experienceYears - a.experienceYears;
     });
     return list;
-  }, [search, specialty, sortBy]);
+  }, [doctors, search, specialty, sortBy]);
 
   return (
     <div className="w-full max-w-[1280px] mx-auto px-8 py-14 animate-fade-in">

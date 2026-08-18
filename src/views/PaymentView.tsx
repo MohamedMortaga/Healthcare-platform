@@ -1,9 +1,11 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useBookingStore } from '@/store/bookingStore';
 import { useT } from '@/hooks/useT';
 import { interpolate } from '@/i18n';
-import { MOCK_DOCTORS } from '@/data/mockData';
+import { fetchDoctors } from '@/api/clinicApi';
+import { Doctor } from '@/types';
 import StepIndicator from '@/components/molecules/StepIndicator';
 import PaymentTabs from '@/components/molecules/PaymentTabs';
 import Input from '@/components/atoms/Input';
@@ -13,7 +15,15 @@ export default function PaymentView() {
   const { t } = useT();
   const { selectedDoctorId, selectedDateKey, selectedTimeSlot, navigate } = useUiStore();
   const b = useBookingStore();
-  const doctor = MOCK_DOCTORS.find((d) => d.id === selectedDoctorId) ?? MOCK_DOCTORS[0];
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
+
+  useEffect(() => {
+    fetchDoctors().then((doctors) => {
+      setDoctor(doctors.find((d) => d.id === selectedDoctorId) ?? doctors[0] ?? null);
+    }).catch(() => setDoctor(null));
+  }, [selectedDoctorId]);
+
+  if (!doctor) return null;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

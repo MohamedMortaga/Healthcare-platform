@@ -1,13 +1,20 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useT } from '@/hooks/useT';
-import { MOCK_DOCTORS } from '@/data/mockData';
+import { fetchDoctors } from '@/api/clinicApi';
+import { Doctor } from '@/types';
 import DoctorCard from '@/components/molecules/DoctorCard';
 
 export default function DoctorsPreviewSection() {
   const { t } = useT();
   const navigate = useUiStore((s) => s.navigate);
   const selectDoctor = useUiStore((s) => s.selectDoctor);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+
+  useEffect(() => {
+    fetchDoctors().then(setDoctors).catch(() => setDoctors([]));
+  }, []);
 
   return (
     <section className="max-w-[1280px] mx-auto px-8 py-24">
@@ -21,7 +28,7 @@ export default function DoctorsPreviewSection() {
         </button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {MOCK_DOCTORS.map((d) => (
+        {doctors.slice(0, 4).map((d) => (
           <DoctorCard
             key={d.id}
             doctor={d}

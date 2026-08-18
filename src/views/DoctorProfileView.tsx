@@ -1,14 +1,32 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useT } from '@/hooks/useT';
-import { MOCK_DOCTORS, MOCK_REVIEWS } from '@/data/mockData';
+import { fetchDoctors, fetchReviews } from '@/api/clinicApi';
+import { Doctor, Review } from '@/types';
 import ImagePlaceholder from '@/components/atoms/ImagePlaceholder';
 import BookingWidget from '@/components/organisms/BookingWidget';
 
 export default function DoctorProfileView() {
   const { t } = useT();
   const { selectedDoctorId, navigate } = useUiStore();
-  const doctor = MOCK_DOCTORS.find((d) => d.id === selectedDoctorId) ?? MOCK_DOCTORS[0];
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    Promise.all([fetchDoctors(), fetchReviews()])
+      .then(([doctors, nextReviews]) => {
+        const nextDoctor = doctors.find((d) => d.id === selectedDoctorId) ?? doctors[0] ?? null;
+        setDoctor(nextDoctor);
+        setReviews(nextReviews);
+      })
+      .catch(() => {
+        setDoctor(null);
+        setReviews([]);
+      });
+  }, [selectedDoctorId]);
+
+  if (!doctor) return null;
   const lastName = doctor.name.split(' ').slice(-1)[0];
 
   return (
@@ -83,7 +101,7 @@ export default function DoctorProfileView() {
               {t.profile.reviews}
             </h4>
             <div className="flex flex-col gap-3.5">
-              {MOCK_REVIEWS.map((rev) => (
+              {reviews.map((rev) => (
                 <div key={rev.id} className="bg-brand-cream dark:bg-brand-bgDark rounded-xl p-4 text-xs">
                   <div className="flex justify-between mb-1.5">
                     <strong>{rev.author}</strong>

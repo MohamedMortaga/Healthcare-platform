@@ -1,9 +1,11 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import { useBookingStore } from '@/store/bookingStore';
 import { useT } from '@/hooks/useT';
-import { MOCK_DOCTORS } from '@/data/mockData';
+import { fetchDoctors } from '@/api/clinicApi';
+import { Doctor } from '@/types';
 import StepIndicator from '@/components/molecules/StepIndicator';
 import Input from '@/components/atoms/Input';
 import Textarea from '@/components/atoms/Textarea';
@@ -16,8 +18,16 @@ export default function ReservationFormView() {
   const { selectedDoctorId, selectedDateKey, selectedTimeSlot, navigate } = useUiStore();
   const { user } = useAuthStore();
   const b = useBookingStore();
-  const doctor = MOCK_DOCTORS.find((d) => d.id === selectedDoctorId) ?? MOCK_DOCTORS[0];
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
+
+  useEffect(() => {
+    fetchDoctors().then((doctors) => {
+      setDoctor(doctors.find((d) => d.id === selectedDoctorId) ?? doctors[0] ?? null);
+    }).catch(() => setDoctor(null));
+  }, [selectedDoctorId]);
+
   const dateFull = selectedDateKey;
+  if (!doctor) return null;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();

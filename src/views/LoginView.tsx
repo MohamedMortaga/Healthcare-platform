@@ -25,10 +25,15 @@ export default function LoginView() {
       setError(result.error.issues[0]?.message ?? 'Please fill in all credentials');
       return;
     }
-    const user = await login(phone, password);
-    prefill(user.name, user.phone, user.email);
-    setError('');
-    navigate('home');
+
+    try {
+      const user = await login(phone, password);
+      prefill(user.name, user.phone, user.email);
+      setError('');
+      navigate('home');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid phone or password.');
+    }
   };
 
   return (
